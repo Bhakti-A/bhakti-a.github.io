@@ -1,2 +1,2 @@
-# bhakti.github.io
+# bhakti-a.github.io
 personal website
