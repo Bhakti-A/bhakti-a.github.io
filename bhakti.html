@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BHAKTI ASSAR — Personal</title>
+  <meta name="description" content="Personal site for Bhakti Assar" />
+  <style>
+    /* --------------------------
+       Colors & base
+       -------------------------- */
+    :root{
+      --bg1: #d9f0ff; /* pale blue */
+      --bg2: #e9d9ff; /* pale purple */
+      --card-bg: rgba(255,255,255,0.7);
+      --glass-border: rgba(255,255,255,0.6);
+      --accent: rgba(94,72,255,0.95);
+      --text: #0b1220;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      /* animated flowing gradient background */
+      background: linear-gradient(120deg,var(--bg1),var(--bg2));
+      background-size: 400% 400%;
+      animation: flow 18s ease-in-out infinite;
+      padding:36px;
+      min-height: 100vh;
+    }
+
+    @keyframes flow{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    /* container */
+    .wrap{
+      width:100%;
+      max-width:980px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.52));
+      border-radius:18px;
+      padding:36px;
+      box-shadow: 0 10px 40px rgba(11,18,32,0.12);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(8px) saturate(120%);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .wrap:hover{ transform: translateY(-6px); }
+
+    header{
+      display:flex;
+      gap:24px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .brand{
+      display:flex;
+      gap:18px;
+      align-items:center;
+    }
+
+    .logo{
+      width:64px;height:64px;border-radius:12px;
+      background:linear-gradient(135deg, rgba(255,255,255,0.45), rgba(255,255,255,0.15));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;color:var(--accent);
+      font-size:20px;box-shadow: inset 0 -6px 20px rgba(0,0,0,0.03);
+      border:1px solid rgba(255,255,255,0.6);
+      overflow: hidden;
+    }
+
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    h1{margin:0;font-size:32px;letter-spacing:0.6px}
+    p.lead{margin:6px 0 0;color:rgba(11,18,32,0.7)}
+
+    nav{display:flex;gap:12px;align-items:center}
+    a.btn{
+      display:inline-block;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:600;
+      border:1px solid transparent;
+      transition: all .18s ease;
+      background:transparent;color:var(--accent);
+    }
+
+    /* sections */
+    .cols{display:grid;grid-template-columns:1fr 320px;gap:22px;margin-top:24px}
+    .bio{
+      line-height:1.6;padding:18px;border-radius:12px;
+    }
+
+    .card{padding:14px;border-radius:12px;background:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.6)}
+
+    /* social list */
+    .social{display:flex;flex-direction:column;gap:10px}
+    .social a{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;text-decoration:none;font-weight:600}
+
+    .kicker{font-size:12px;text-transform:uppercase;color:rgba(11,18,32,0.55);letter-spacing:1px}
+
+    footer{margin-top:20px;text-align:center;color:rgba(11,18,32,0.55);font-size:14px}
+
+    /* highlight effect on hover using JS (class added) */
+    .cursor-highlight{
+      box-shadow: 0 18px 42px rgba(94,72,255,0.12), 0 0 28px rgba(94,72,255,0.08) !important;
+      transform: translateY(-6px) !important;
+      border-radius:10px !important;
+      transition: transform .12s ease, box-shadow .12s ease; 
+      position: relative !important;
+      z-index: 6 !important;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-content h2 {
+      margin-top: 0;
+      color: var(--accent);
+    }
+
+    .modal-content img,
+    .modal-content iframe {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .modal-content iframe {
+      aspect-ratio: 16/9;
+      height: auto;
+      min-height: 400px;
+    }
+
+    .close-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all .2s ease;
+    }
+
+    .close-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(94,72,255,0.3);
+    }
+
+    .view-media-btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all .2s ease;
+      cursor: pointer;
+      border: none;
+      font-size: 14px;
+    }
+
+    .view-media-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(94,72,255,0.3);
+    }
+
+    /* ensure inline elements like anchors play nicely */
+    a, button { display: inline-block }
+
+    /* focus styles for keyboard users */
+    :focus{outline:3px solid rgba(94,72,255,0.14);outline-offset:4px}
+
+    /* responsiveness */
+    @media (max-width:880px){
+      .cols{grid-template-columns:1fr;}
+      header{align-items:flex-start}
+      .modal-content iframe {
+        min-height: 250px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <main class="wrap" id="main">
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <img src="https://i.postimg.cc/vBT0XpHy/mememe.jpg" alt="Bhakti Assar" onerror="this.parentElement.textContent='BA'; console.error('Image failed to load')" />
+        </div>
+        <div>
+          <h1>BHAKTI ASSAR</h1>
+          <p class="lead">Curious • chaotic • tinkerer</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="cols">
+      <section class="bio card" id="about">
+        <div class="kicker">Hello — I'm Bhakti</div>
+        <p>I'm a second year student doing Electronics and Telecommunication engineering at VJTI, Mumbai. I'm a member of SRA, the robotics club of my college, where we build cool robots.</p>
+        <h2 style="margin-top:8px;margin-bottom:6px">About Me</h2>
+        <p>I like building stuff that moves, flies, blinks or makes cool noises. If it runs on electronics or propellers, I'm in. When I'm not tinkering with robots or dreaming up flying things, you'll probably find me vibing to music or crocheting something weirdly adorable and mildly unnecessary.</p>
+      </section>
+
+      <aside class="card">
+        <div class="kicker">Connect</div>
+        <div class="social" style="margin-top:12px">
+          <a href="https://github.com/Bhakti-A" target="_blank" rel="noopener noreferrer">🐙 GitHub — Bhakti-A</a>
+          <a href="https://twitter.com/Bhakti8997925" target="_blank" rel="noopener noreferrer">🐦 Twitter — @Bhakti8997925</a>
+          <a href="mailto:bhakti.assar24@gmail.com" target="_blank" rel="noopener noreferrer">📧 Gmail—bhakti.assar24@gmail.com</a>
+          <a href="https://www.linkedin.com/in/bhakti-assar24" target="_blank" rel="noopener noreferrer">🔗 LinkedIn — bhakti-assar24</a>
+        </div>
+
+        <div style="margin-top:18px" class="kicker"></div>
+        <ul style="margin-top:8px">
+        </ul>
+      </aside>
+    </div>
+
+    <section id="projects" style="margin-top:20px">
+      <div class="kicker">Projects</div>
+      <div class="card" style="margin-top:10px">
+         <h3>Ballerina Cappucina</h3>
+         <p>An experimental robot design combining elegance and chaos. It is an autonomous omnidirectional robot that gracefully navigates, detects colorful balls using vision, and collects them with precision.</p>
+         
+         <h4 style="margin-top:16px;margin-bottom:8px;">Project Image</h4>
+         <iframe src="https://drive.google.com/file/d/1wEIBmWhZUdMmoB-zAYdxBqozdE5tjC7O/preview" style="width:100%;height:400px;border-radius:10px;border:none;margin-bottom:16px;" allow="autoplay"></iframe>
+         
+         <h4 style="margin-top:16px;margin-bottom:8px;">Demo Video</h4>
+         <iframe src="https://drive.google.com/file/d/1ZtGKj1FhYoayCYP2mvTP5yY9MNRtKNvc/preview" style="width:100%;height:400px;border-radius:10px;border:none;margin-bottom:16px;" allow="autoplay"></iframe>
+         
+         <a href="https://github.com/vedantmalkar/Ballerina-Cappucina" target="_blank" style="margin-top:10px;">View GitHub Repo →</a>
+      </div>
+
+      <div class="card" style="margin-top:10px">
+        <h3>Current Research</h3>
+        <p>Exploring multimodal drones that can both fly through the air and drive on land like they own both worlds.</p>
+      </div>
+    </section>
+
+    <footer>
+      
+    </footer>
+  </main>
+
+  <script>
+    // Universal highlight-on-hover: adds .cursor-highlight to element under cursor
+    (function(){
+      let last = null;
+      const skipTags = new Set(['HTML','BODY','MAIN']);
+
+      document.addEventListener('pointerover', e => {
+        const el = e.target;
+        if(!el || !el.tagName) return;
+        if(skipTags.has(el.tagName)) return;
+        if(last && last !== el) last.classList.remove('cursor-highlight');
+        el.classList.add('cursor-highlight');
+        last = el;
+      }, {passive:true});
+
+      document.addEventListener('pointerout', e => {
+        const el = e.target;
+        if(el && el.classList) el.classList.remove('cursor-highlight');
+        if(last === el) last = null;
+      }, {passive:true});
+
+      // Make clickable elements keyboard-friendly (show the same highlight on focus)
+      document.addEventListener('focusin', e => {
+        const el = e.target; if(!el || !el.classList) return;
+        el.classList.add('cursor-highlight');
+      });
+      document.addEventListener('focusout', e => {
+        const el = e.target; if(!el || !el.classList) return;
+        el.classList.remove('cursor-highlight');
+      });
+
+      // small nicety: keyboard shortcut 'g' to open GitHub profile
+      document.addEventListener('keydown', e => {
+        if(e.key === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+          window.open('https://github.com/Bhakti-A','_blank');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
