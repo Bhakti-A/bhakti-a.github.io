@@ -100,14 +100,21 @@
     .social a{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;text-decoration:none;font-weight:600}
     .kicker{font-size:12px;text-transform:uppercase;color:rgba(11,18,32,0.55);letter-spacing:1px}
     footer{margin-top:20px;text-align:center;color:rgba(11,18,32,0.55);font-size:14px}
-    /* highlight effect on hover using JS (class added) */
-    .cursor-highlight{
-      box-shadow: 0 18px 42px rgba(94,72,255,0.12), 0 0 28px rgba(94,72,255,0.08) !important;
-      transform: translateY(-6px) !important;
-      border-radius:10px !important;
-      transition: transform .12s ease, box-shadow .12s ease; 
-      position: relative !important;
-      z-index: 6 !important;
+    /* Simple text highlight on hover */
+    a:hover, button:hover {
+      color: var(--accent);
+      transition: color 0.2s ease;
+    }
+    
+    /* Pale purple text on hover - only the hovered element */
+    p:hover, h1:hover, h2:hover, h3:hover, h4:hover, li:hover, span:hover, .lead:hover, .kicker:hover {
+      color: rgba(94,72,255,0.8) !important;
+      transition: color 0.2s ease;
+    }
+    
+    /* Don't apply to links and buttons since they have their own hover */
+    a, button {
+      color: inherit;
     }
     /* Modal styles */
     .modal {
@@ -319,43 +326,6 @@
     </div>
   </div>
   <script>
-    // Universal highlight-on-hover: adds .cursor-highlight to element under cursor
-    (function(){
-      let last = null;
-      const skipTags = new Set(['HTML','BODY','MAIN']);
-      document.addEventListener('pointerover', e => {
-        const el = e.target;
-        if(!el || !el.tagName) return;
-        if(skipTags.has(el.tagName)) return;
-        if(last && last !== el) last.classList.remove('cursor-highlight');
-        el.classList.add('cursor-highlight');
-        last = el;
-      }, {passive:true});
-      document.addEventListener('pointerout', e => {
-        const el = e.target;
-        if(el && el.classList) el.classList.remove('cursor-highlight');
-        if(last === el) last = null;
-      }, {passive:true});
-      // Make clickable elements keyboard-friendly (show the same highlight on focus)
-      document.addEventListener('focusin', e => {
-        const el = e.target; if(!el || !el.classList) return;
-        el.classList.add('cursor-highlight');
-      });
-      document.addEventListener('focusout', e => {
-        const el = e.target; if(!el || !el.classList) return;
-        el.classList.remove('cursor-highlight');
-      });
-      // small nicety: keyboard shortcut 'g' to open GitHub profile
-      document.addEventListener('keydown', e => {
-        if(e.key === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey) {
-          window.open('https://github.com/Bhakti-A','_blank');
-        }
-        // Close modal on Escape key
-        if(e.key === 'Escape') {
-          closeResearchModal();
-        }
-      });
-    })();
     // Modal functions
     function openResearchModal() {
       document.getElementById('researchModal').classList.add('show');
@@ -370,6 +340,16 @@
     // Close modal when clicking outside the content
     document.getElementById('researchModal').addEventListener('click', function(e) {
       if (e.target === this) {
+        closeResearchModal();
+      }
+    });
+    // Keyboard shortcut 'g' to open GitHub profile
+    document.addEventListener('keydown', e => {
+      if(e.key === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        window.open('https://github.com/Bhakti-A','_blank');
+      }
+      // Close modal on Escape key
+      if(e.key === 'Escape') {
         closeResearchModal();
       }
     });
