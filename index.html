@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>BHAKTI ASSAR — Personal</title>
+  <title>BHAKTI ASSAR - Personal</title>
   <meta name="description" content="Personal site for Bhakti Assar" />
   <style>
     /* --------------------------
@@ -209,6 +209,93 @@
       transform: translateY(-4px);
       box-shadow: 0 12px 28px rgba(94,72,255,0.15);
     }
+    /* Status badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(94,72,255,0.1);
+      color: var(--accent);
+      border: 1px solid rgba(94,72,255,0.25);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+    .status-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 24px;
+      margin: 16px 0;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent), rgba(94,72,255,0.15));
+      border-radius: 2px;
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      top: 6px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid white;
+      box-shadow: 0 0 0 2px rgba(94,72,255,0.3);
+    }
+    .timeline-item p {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .timeline-item .tl-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(94,72,255,0.7);
+      margin-bottom: 4px;
+    }
+    /* callout box */
+    .callout {
+      padding: 16px 18px;
+      border-radius: 10px;
+      border-left: 4px solid var(--accent);
+      margin: 16px 0;
+    }
+    .callout.warn { 
+      background: rgba(255,180,0,0.08); 
+      border-color: rgba(200,140,0,0.6);
+    }
+    .callout.info { 
+      background: rgba(94,72,255,0.06); 
+      border-color: var(--accent);
+    }
+    .callout p { margin: 0; }
     /* ensure inline elements like anchors play nicely */
     a, button { display: inline-block }
     /* focus styles for keyboard users */
@@ -241,7 +328,7 @@
     </header>
     <div class="cols">
       <section class="bio card" id="about">
-        <div class="kicker">Hello — I'm Bhakti</div>
+        <div class="kicker">Hello - I'm Bhakti</div>
         <p>I'm a second year student doing Electronics and Telecommunication engineering at VJTI, Mumbai. I'm a member of <a href="https://sravjti.in/webring/redirect.html?site=YOUR_SITE" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-weight:600;text-decoration:none;">SRA</a>, the robotics club of my college, where we build cool robots.</p>
         <h2 style="margin-top:8px;margin-bottom:6px">About Me</h2>
         <p>I like building stuff that moves, flies, blinks or makes cool noises. If it runs on electronics or propellers, I'm in. When I'm not tinkering with robots or dreaming up flying things, you'll probably find me vibing to music or crocheting something weirdly adorable and mildly unnecessary.</p>
@@ -249,10 +336,10 @@
       <aside class="card">
         <div class="kicker">Connect</div>
         <div class="social" style="margin-top:12px">
-          <a href="https://github.com/Bhakti-A" target="_blank" rel="noopener noreferrer">🐙 GitHub — Bhakti-A</a>
-          <a href="https://twitter.com/Bhakti8997925" target="_blank" rel="noopener noreferrer">🐦 Twitter — @Bhakti8997925</a>
-          <a href="mailto:bhakti.assar24@gmail.com" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">📧 Gmail—bhakti.assar24@gmail.com</a>
-          <a href="https://www.linkedin.com/in/bhakti-assar24" target="_blank" rel="noopener noreferrer">🔗 LinkedIn — bhakti-assar24</a>
+          <a href="https://github.com/Bhakti-A" target="_blank" rel="noopener noreferrer">🐙 GitHub - Bhakti-A</a>
+          <a href="https://twitter.com/Bhakti8997925" target="_blank" rel="noopener noreferrer">🐦 Twitter - @Bhakti8997925</a>
+          <a href="mailto:bhakti.assar24@gmail.com" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">📧 Gmail-bhakti.assar24@gmail.com</a>
+          <a href="https://www.linkedin.com/in/bhakti-assar24" target="_blank" rel="noopener noreferrer">🔗 LinkedIn - bhakti-assar24</a>
         </div>
         <div style="margin-top:18px" class="kicker"></div>
         <ul style="margin-top:8px">
@@ -288,6 +375,7 @@
       
     </footer>
   </main>
+
   <!-- Research Modal -->
   <div id="researchModal" class="modal">
     <div class="modal-content">
@@ -313,10 +401,49 @@
       <iframe src="https://drive.google.com/file/d/1X2vziGRiZost7lSSpKZe9J8-IUo-sqEx/preview" style="width:100%;height:450px;border-radius:10px;border:none;margin-bottom:10px;" allow="autoplay"></iframe>
       <iframe src="https://drive.google.com/file/d/1ekFmK_7TlQuK71KW2sghTSIm19y7FmnU/preview" style="width:100%;height:450px;border-radius:10px;border:none;margin-bottom:10px;" allow="autoplay"></iframe>
       <p style="text-align:center;font-size:14px;color:rgba(11,18,32,0.6);margin-top:10px;">And that's how Maya_V was born!</p>
-      
-      <h3>What I Learned</h3>
-      <p>This experience taught me that sometimes the best way to learn is to just jump in and figure things out as you go. Sure, I could have waited for flight controllers to come back in stock, but where's the fun in that? Plus, now I have a custom FC that's exactly what I need for my multimodal drone project.</p>
-      <p>This project is still ongoing, and I'm excited to see where it goes. If I can go from "zero PCB knowledge" to "designed my own flight controller" in six weeks, can't wait for the next parts!</p>
+
+      <!--  NEW SECTION: Faults & V2  -->
+      <h3>Plot Twist: It Had Faults 🙃</h3>
+
+      <div class="callout warn">
+        <p>After getting Maya_V made, I discovered faults in the design. Not ideal. But honestly? Kind of expected for a first PCB made from zero knowledge in six weeks.</p>
+      </div>
+
+      <p>Going through the board carefully, it became clear that debugging this version was going to be a nightmare - the layout made it really hard to trace what was going wrong where. So instead of endlessly poking at v1, I made the call to go back to the drawing board and start fresh with a second version, this time designed with debuggability as a first-class priority.</p>
+
+      <h3>Maya V2 - Designing Smarter</h3>
+
+      <div class="status-badge"><span class="dot"></span> Work in progress</div>
+
+      <p>The goal with V2 isn't just "fix the bugs." It's to rethink the layout and architecture so that when something goes wrong (and it will), I can actually figure out <em>why</em>. That means cleaner routing, better test points, more deliberate component placement - all the stuff you learn the hard way.</p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="tl-label">V1</div>
+          <p>Designed from scratch with zero PCB experience. Got made. Had faults. Hard to debug.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-label">Right now</div>
+          <p>Re-planning V2 with a focus on making it easier to trace, test, and fix. Constantly iterating on the design.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-label">Soon™</div>
+          <p>Get V2 made, actually fly it, and finally get to the multimodal stuff.</p>
+        </div>
+      </div>
+
+      <h3>Meanwhile - Learning to Fly on ZeroDrag's FC</h3>
+
+      <p>Along with designing V2... I got hold of ZeroDrag's flight controller and I've been using it to actually practice flying - flashing Betaflight, tuning, and getting reps in.</p>
+
+      <div class="callout info">
+        <p>It has been... a rough ride. Betaflight has a learning curve that doesn't really announce itself. But that's kind of the point - the more I struggle with it now, the more I'll understand about what my own FC needs to handle.</p>
+      </div>
+
+      <h4 style="margin-top:20px;margin-bottom:12px;">Flight Practice</h4>
+      <iframe src="https://drive.google.com/file/d/1mbVzZ49e5tD_yNFpKhVC4_DLlHD9utBc/preview" style="width:100%;height:450px;border-radius:10px;border:none;margin-bottom:16px;" allow="autoplay"></iframe>
+
+      <!--  END NEW SECTION  -->
       
       <div style="margin-top:24px;padding:16px;background:rgba(94,72,255,0.08);border-radius:10px;border-left:4px solid var(--accent);">
         <p style="margin:0;"><strong>Want to see the technical details?</strong></p>
@@ -330,11 +457,11 @@
     // Modal functions
     function openResearchModal() {
       document.getElementById('researchModal').classList.add('show');
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+      document.body.style.overflow = 'hidden';
     }
     function closeResearchModal() {
       document.getElementById('researchModal').classList.remove('show');
-      document.body.style.overflow = ''; // Restore scrolling
+      document.body.style.overflow = '';
     }
     // Click handler for research card
     document.getElementById('researchCard').addEventListener('click', openResearchModal);
@@ -344,12 +471,11 @@
         closeResearchModal();
       }
     });
-    // Keyboard shortcut 'g' to open GitHub profile
+    // Keyboard shortcuts
     document.addEventListener('keydown', e => {
       if(e.key === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey) {
         window.open('https://github.com/Bhakti-A','_blank');
       }
-      // Close modal on Escape key
       if(e.key === 'Escape') {
         closeResearchModal();
       }
