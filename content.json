@@ -25,28 +25,16 @@
       "level": 2,
       "blocks": [
         {
-          "type": "p",
-          "runs": [
-            {
-              "text": "IMG-20220724-WA0010.jpg",
-              "href": "https://drive.google.com/file/d/1FieTY7qRDpw97JPXbNXmxit1SA2MoL05/view?usp=sharing"
-            },
-            {
-              "text": ": everest base camp @ 13"
-            }
-          ]
+          "type": "note",
+          "src": "images/489b9fa10bfd.jpg",
+          "alt": "",
+          "caption": "IMG-20220724-WA0010.jpg: everest base camp @ 13"
         },
         {
-          "type": "p",
-          "runs": [
-            {
-              "text": "IMG-20261007-WA0038.jpg",
-              "href": "https://drive.google.com/file/d/1Z0OIN4QL4tZU1AM6Oc8Df833cZczdHT4/view?usp=sharing"
-            },
-            {
-              "text": ": kailash @ 11"
-            }
-          ]
+          "type": "note",
+          "src": "images/e2eeea77d465.jpg",
+          "alt": "",
+          "caption": "IMG-20261007-WA0038.jpg: kailash @ 11"
         }
       ]
     },
@@ -56,15 +44,21 @@
       "blocks": [
         {
           "type": "note",
-          "src": "",
+          "src": "images/36262e559092.jpg",
           "alt": "",
-          "caption": "caption goes here"
+          "caption": "20260104_001057.jpg: oswald"
         },
         {
           "type": "note",
-          "src": "",
+          "src": "images/5a4ecc34e46e.jpg",
           "alt": "",
-          "caption": "caption goes here"
+          "caption": "787354fd6d5710e60371cac5a233700c.jpg: spidey"
+        },
+        {
+          "type": "note",
+          "src": "images/d21fdeae7572.jpg",
+          "alt": "",
+          "caption": "20260131_224751.jpg:"
         }
       ]
     },
@@ -74,15 +68,39 @@
       "blocks": [
         {
           "type": "note",
-          "src": "",
+          "src": "images/7cf49a5a165e.png",
           "alt": "",
-          "caption": "caption goes here"
+          "caption": "topview.png: first bot"
         },
         {
           "type": "note",
-          "src": "",
+          "src": "images/97c0fe3a7c24.jpg",
           "alt": "",
-          "caption": "caption goes here"
+          "caption": "WhatsApp Image 2026-08-13 at 12.08.42 AM.jpeg: first drone"
+        },
+        {
+          "type": "note",
+          "src": "images/8f71da44ffa8.jpg",
+          "alt": "",
+          "caption": "WhatsApp Image 2026-08-13 at 12.08.43 AM(5).jpeg: fightcontroller"
+        },
+        {
+          "type": "note",
+          "src": "images/27037cec6105.jpg",
+          "alt": "",
+          "caption": "IMG-20260422-WA0053.jpg: dronesss"
+        },
+        {
+          "type": "note",
+          "src": "images/87b6f66784a4.jpg",
+          "alt": "",
+          "caption": "WhatsApp Image 2026-08-13 at 12.08.44 AM.jpeg: dronesss pt2"
+        },
+        {
+          "type": "note",
+          "src": "images/b5d3c28b035a.jpg",
+          "alt": "",
+          "caption": "WhatsApp Image 2026-08-13 at 12.08.45 AM.jpeg: dronesss pt3"
         }
       ]
     }
