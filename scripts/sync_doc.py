@@ -164,7 +164,9 @@ def split_image_links(runs):
         href = r.get("href")
         if href and is_image_link(href):
             urls.append(href)
-            if not URL_RE.fullmatch(r["text"].strip()):      # nice link text becomes the caption
+            label = r["text"].strip()
+            # a pasted URL or a Drive chip's file name ("IMG_1234.jpg") is not a caption; real link text is
+            if not URL_RE.fullmatch(label) and not re.search(r"\.(jpe?g|png|gif|webp|avif|heic)$", label, re.I):
                 rest.append({"text": r["text"]})
             continue
 
@@ -219,6 +221,8 @@ def build(html, localize):
         else:
             runs, link_urls = split_image_links(runs)
             text = plain(runs)
+            if link_urls or blk["images"]:
+                text = re.sub(r"^[\s:;\-–—·]+", "", text)   # "link: caption" -> "caption"
             blk = dict(blk, images=list(blk["images"]) + [{"src": u, "alt": ""} for u in link_urls])
             for img in blk["images"]:
                 src = localize(img["src"])
