@@ -1,0 +1,33 @@
+{
+  "title": "BHAKTI ASSAR",
+  "subtitle": "curious • chaotic • tinkerer",
+  "avatar": {"src": "https://i.postimg.cc/vBT0XpHy/mememe.jpg", "alt": "Bhakti"},
+  "intro": [
+    [{"text": "second year E&TC student at VJTI, Mumbai. member of "}, {"text": "SRA", "href": "https://sravjti.in"}, {"text": ", the robotics club, where we build cool robots."}]
+  ],
+  "sections": [
+    {"title": "robots", "blocks": [
+      {"type": "p", "runs": [{"text": "things that move, blink or make cool noises. currently obsessed with a ball-collecting omnidirectional bot named Ballerina Cappucina."}]},
+      {"type": "note", "src": "", "alt": "", "caption": "Ballerina Cappucina"}
+    ]},
+    {"title": "things that fly", "blocks": [
+      {"type": "p", "runs": [{"text": "designed my own flight controller (Maya_V) in six weeks with zero PCB knowledge. it had faults. V2 is in progress."}]},
+      {"type": "note", "src": "", "alt": "", "caption": "Maya_V flight controller"},
+      {"type": "note", "src": "", "alt": "", "caption": "learning to fly on Betaflight"}
+    ]},
+    {"title": "crochet", "blocks": [
+      {"type": "p", "runs": [{"text": "weirdly adorable and mildly unnecessary."}]},
+      {"type": "note", "src": "", "alt": "", "caption": "latest creature"}
+    ]},
+    {"title": "music", "blocks": [
+      {"type": "p", "runs": [{"text": "vibing, always."}]},
+      {"type": "note", "src": "", "alt": "", "caption": "on repeat"}
+    ]},
+    {"title": "find me", "blocks": [
+      {"type": "p", "runs": [{"text": "GitHub", "href": "https://github.com/Bhakti-A"}]},
+      {"type": "p", "runs": [{"text": "LinkedIn", "href": "https://www.linkedin.com/in/bhakti-assar24"}]},
+      {"type": "p", "runs": [{"text": "Twitter", "href": "https://twitter.com/Bhakti8997925"}]},
+      {"type": "p", "runs": [{"text": "bhakti.assar24@gmail.com", "href": "mailto:bhakti.assar24@gmail.com"}]}
+    ]}
+  ]
+}
