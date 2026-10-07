@@ -61,7 +61,7 @@
           "type": "note",
           "src": "images/d21fdeae7572.jpg",
           "alt": "",
-          "caption": "caption here"
+          "caption": "📷"
         }
       ]
     },
@@ -104,6 +104,12 @@
           "src": "images/b5d3c28b035a.jpg",
           "alt": "",
           "caption": "dronesss pt3"
+        },
+        {
+          "type": "note",
+          "src": "images/22133f5dd426.jpg",
+          "alt": "",
+          "caption": "dronesss pt4"
         }
       ]
     }
