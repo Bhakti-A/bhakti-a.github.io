@@ -23,7 +23,7 @@
     body{
       margin:0;
       min-height:100vh;
-      padding:48px 20px 80px;
+      padding:28px 16px 60px;
       color:var(--ink);
       font-family:"Kalam", "Comic Sans MS", cursive;
       font-weight:300;
@@ -37,7 +37,7 @@
 
     /* ---------- the cut-out page ---------- */
     .page-shadow{
-      max-width:900px;
+      max-width:1280px;
       margin:0 auto;
       filter:drop-shadow(3px 6px 6px rgba(70,45,15,.35)) drop-shadow(0 18px 24px rgba(70,45,15,.25));
       transform:rotate(-.6deg);
@@ -46,21 +46,25 @@
       background:
         repeating-linear-gradient(0deg, rgba(150,120,70,.05) 0 1px, transparent 1px 34px),
         var(--paper);
-      padding:56px 52px 64px;
+      position:relative;padding:72px 84px 80px;
       /* scissor-cut edge */
       clip-path:polygon(
-        0.4% 1.2%, 6% 0.3%, 13% 1.1%, 21% 0.2%, 30% 0.9%, 38% 0.1%, 47% 1%, 56% 0.3%, 65% 1.2%, 74% 0.2%, 83% 0.9%, 92% 0.1%, 99.6% 0.8%,
-        99.9% 8%, 99.2% 17%, 100% 27%, 99.3% 38%, 99.9% 49%, 99.1% 60%, 100% 71%, 99.4% 82%, 99.9% 92%, 99.5% 99.3%,
-        92% 99.9%, 83% 99%, 74% 99.9%, 64% 99.2%, 55% 100%, 46% 99.1%, 37% 99.9%, 28% 99.2%, 19% 100%, 10% 99.1%, 0.5% 99.7%,
-        0.1% 91%, 0.8% 81%, 0% 70%, 0.7% 59%, 0.1% 47%, 0.9% 36%, 0.1% 25%, 0.8% 14%
+        0.1% 0.12%, 8% 0.02%, 17% 0.15%, 27% 0.03%, 38% 0.13%, 49% 0.02%, 60% 0.14%, 71% 0.03%, 82% 0.13%, 92% 0.02%, 99.9% 0.1%,
+        99.75% 12%, 99.95% 26%, 99.7% 41%, 99.95% 57%, 99.75% 72%, 99.95% 88%, 99.8% 99.88%,
+        90% 99.98%, 79% 99.86%, 67% 99.97%, 55% 99.87%, 43% 99.98%, 31% 99.86%, 19% 99.97%, 8% 99.88%, 0.1% 99.95%,
+        0.2% 88%, 0.02% 72%, 0.25% 57%, 0.03% 41%, 0.22% 26%, 0.02% 12%
       );
     }
 
+    /* ---------- stitched edge ---------- */
+    .stitches{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+
     /* ---------- header ---------- */
-    header{display:flex;gap:32px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+    header{display:flex;gap:32px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+    .title-box{flex:1 1 420px;min-width:0}
     .avatar{
-      position:relative;flex:none;width:150px;padding:8px 8px 26px;background:#fff;
-      transform:rotate(-4deg);box-shadow:1px 3px 8px rgba(60,40,10,.3);
+      position:relative;flex:none;width:210px;margin:10px 20px 0 0;padding:10px 10px 34px;background:#fff;
+      transform:rotate(3deg);box-shadow:1px 3px 8px rgba(60,40,10,.3);
     }
     .avatar img{display:block;width:100%;aspect-ratio:1;object-fit:cover;filter:sepia(.15)}
     .avatar::before, .note::before{
@@ -96,7 +100,7 @@
 
     .notes{display:flex;flex-wrap:wrap;gap:34px 30px;margin-top:26px;padding:6px 4px}
     .note{
-      position:relative;width:210px;padding:14px 14px 18px;
+      position:relative;width:240px;padding:14px 14px 18px;
       font-family:"Caveat", cursive;font-weight:500;font-size:24px;line-height:1.15;text-align:center;
       box-shadow:2px 5px 9px rgba(60,40,10,.28);
       transition:transform .2s ease, box-shadow .2s ease;
@@ -125,7 +129,8 @@
 
     @media (max-width:640px){
       body{padding:24px 10px 60px}
-      .page{padding:40px 24px 48px}
+      .page{padding:58px 48px 62px}
+      .avatar{width:150px;margin:6px auto 0 0}
       header{gap:24px}
       .note{width:calc(50% - 15px);font-size:21px;padding:10px 10px 14px}
     }
@@ -135,7 +140,8 @@
 <body>
   <div class="page-shadow">
     <main class="page" id="page">
-      <p class="status" id="status">unrolling the parchment…</p>
+      <svg class="stitches" id="stitches" aria-hidden="true"></svg>
+      <div id="content"><p class="status" id="status">unrolling the parchment…</p></div>
     </main>
   </div>
   <footer id="footer"></footer>
@@ -143,7 +149,8 @@
   <script>
     // Everything on this page comes from content.json, which is synced from a Google Doc
     // by .github/workflows/sync-doc.yml. Edit the doc, not this file.
-    const page = document.getElementById("page");
+    const DEFAULT_AVATAR = {src: "https://i.postimg.cc/vBT0XpHy/mememe.jpg", alt: "Bhakti"};
+    const page = document.getElementById("content");
 
     function el(tag, className, text){
       const e = document.createElement(tag);
@@ -219,14 +226,7 @@
     function render(data){
       page.textContent = "";
       const header = el("header");
-      if (data.avatar && data.avatar.src && safeUrl(data.avatar.src)){
-        const av = el("div", "avatar");
-        const img = el("img");
-        img.src = safeUrl(data.avatar.src); img.alt = data.avatar.alt || "";
-        av.appendChild(img);
-        header.appendChild(av);
-      }
-      const titleBox = el("div");
+      const titleBox = el("div", "title-box");
       titleBox.appendChild(el("h1", null, data.title || "Bhakti Assar"));
       if (data.subtitle) titleBox.appendChild(el("p", "subtitle", data.subtitle));
       if (data.intro && data.intro.length){
@@ -235,10 +235,82 @@
         titleBox.appendChild(intro);
       }
       header.appendChild(titleBox);
+      // photo: the one in the doc if there is one, otherwise the one from the old site
+      const photo = (data.avatar && data.avatar.src && safeUrl(data.avatar.src)) ? data.avatar : DEFAULT_AVATAR;
+      const av = el("div", "avatar");
+      const img = el("img");
+      img.src = safeUrl(photo.src); img.alt = photo.alt || "Bhakti";
+      img.onerror = () => av.remove();
+      av.appendChild(img);
+      header.appendChild(av);
       page.appendChild(header);
       for (const s of data.sections || []) page.appendChild(renderSection(s));
       document.title = (data.title || "Bhakti Assar").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
     }
+
+
+    // Cross-stitch border in olive thread: every X is two crossing threads, a touch uneven like hand work.
+    function sewStitches(){
+      const svg = document.getElementById("stitches");
+      const host = svg.parentElement;
+      const W = host.clientWidth, H = host.clientHeight, inset = 26, step = 25;
+      let seed = 5;
+      const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+      const between = (a, b) => a + rnd() * (b - a);
+      const f = n => n.toFixed(1);
+      const THREAD = "#4b5a35", EDGE = "#2f3a20", LIGHT = "#8a9a62";
+      const out = [];
+      const thread = (ax, ay, bx, by, w) => {
+        out.push(`<line x1="${f(ax + .8)}" y1="${f(ay + 1.6)}" x2="${f(bx + .8)}" y2="${f(by + 1.6)}" stroke="rgba(40,28,8,.28)" stroke-width="${f(w + .8)}" stroke-linecap="round"/>`);
+        out.push(`<line x1="${f(ax)}" y1="${f(ay)}" x2="${f(bx)}" y2="${f(by)}" stroke="${EDGE}" stroke-width="${f(w + .6)}" stroke-linecap="round"/>`);
+        out.push(`<line x1="${f(ax)}" y1="${f(ay)}" x2="${f(bx)}" y2="${f(by)}" stroke="${THREAD}" stroke-width="${f(w)}" stroke-linecap="round"/>`);
+        out.push(`<line x1="${f(ax)}" y1="${f(ay)}" x2="${f(bx)}" y2="${f(by)}" stroke="${LIGHT}" stroke-width="1" stroke-linecap="round" opacity=".55" transform="translate(-.5,-.6)"/>`);
+      };
+      const cross = (cx, cy) => {
+        const r = between(6.2, 7.8), j = () => between(-1.4, 1.4), w = between(3, 3.8);
+        thread(cx - r + j(), cy - r + j(), cx + r + j(), cy + r + j(), w);   // first thread
+        thread(cx + r + j(), cy - r + j(), cx - r + j(), cy + r + j(), w);   // second thread, over the first
+      };
+      const x0 = inset, y0 = inset, x1 = W - inset, y1 = H - inset;
+      const nx = Math.max(2, Math.round((x1 - x0) / step)), ny = Math.max(2, Math.round((y1 - y0) / step));
+      for (let i = 0; i <= nx; i++){ const x = x0 + (x1 - x0) * i / nx; cross(x, y0 + between(-1, 1)); cross(x, y1 + between(-1, 1)); }
+      for (let i = 1; i < ny; i++){ const y = y0 + (y1 - y0) * i / ny; cross(x0 + between(-1, 1), y); cross(x1 + between(-1, 1), y); }
+      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      svg.innerHTML = out.join("");
+    }
+    // Hand-cut paper edge: the scissors wander, drift in and out, and change angle now and then.
+    function cutPaper(){
+      const host = document.getElementById("page");
+      const W = host.clientWidth, H = host.clientHeight, MAX = 15;
+      let seed = 23;
+      const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+      const between = (a, b) => a + rnd() * (b - a);
+      const pts = [];
+      const side = (len, place) => {
+        let d = between(2, MAX - 2), t = 0;
+        while (true){
+          t += between(26, 120);
+          if (t > len - 20) break;
+          d = rnd() < .18 ? between(0, MAX) : Math.max(0, Math.min(MAX, d + between(-5, 5)));
+          pts.push(place(t, d));
+          if (rnd() < .22) pts.push(place(t + between(6, 16), Math.max(0, Math.min(MAX, d + between(-4, 4)))));  // little jog
+        }
+      };
+      pts.push([between(0, 10), between(0, 12)]);                       // top-left corner
+      side(W, (t, d) => [t, d]);
+      pts.push([W - between(0, 10), between(0, 12)]);                   // top-right
+      side(H, (t, d) => [W - d, t]);
+      pts.push([W - between(0, 10), H - between(0, 12)]);               // bottom-right
+      side(W, (t, d) => [W - t, H - d]);
+      pts.push([between(0, 10), H - between(0, 12)]);                   // bottom-left
+      side(H, (t, d) => [d, H - t]);
+      host.style.clipPath = "polygon(" + pts.map(([x, y]) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(", ") + ")";
+    }
+    const pageEl = document.getElementById("page");
+    let sewTimer;
+    new ResizeObserver(() => { clearTimeout(sewTimer); sewTimer = setTimeout(() => { cutPaper(); sewStitches(); }, 60); }).observe(pageEl);
 
     fetch("content.json?v=" + Date.now())
       .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
