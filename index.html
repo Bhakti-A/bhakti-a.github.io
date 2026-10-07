@@ -85,6 +85,12 @@
       background:var(--ink);color:var(--paper);transform:rotate(-1.2deg);
     }
     section:nth-of-type(even) h2{transform:rotate(.9deg);background:var(--accent)}
+    section.sub{margin-top:38px}
+    section.sub h2{
+      background:none;color:var(--accent);padding:0;transform:none;
+      font-family:"Caveat", cursive;font-weight:700;font-size:40px;letter-spacing:0;
+      text-decoration:underline wavy rgba(156,74,47,.45);text-underline-offset:6px;
+    }
     .blurb{margin:10px 0 0;font-size:17px;line-height:1.7;max-width:62ch}
     .blurb a, .intro a, .links a{color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
 
@@ -185,7 +191,7 @@
     }
 
     function renderSection(s){
-      const sec = el("section");
+      const sec = el("section", s.level === 2 ? "sub" : null);
       sec.appendChild(el("h2", null, s.title));
       const isLinks = /^(find me|links|contact|elsewhere)$/i.test(s.title.trim());
       let notes = null;
