@@ -198,6 +198,7 @@ def save_image(url, used):
     with open(os.path.join(ROOT, "images", name + ext), "wb") as f:
         f.write(data)
     used.add(name + ext)
+    print("saved picture %s (%d KB) from %s" % (name + ext, len(data) // 1024, url))
     return "images/" + name + ext
 
 
@@ -222,7 +223,11 @@ def build(html, localize):
             runs, link_urls = split_image_links(runs)
             text = plain(runs)
             if link_urls or blk["images"]:
-                text = re.sub(r"^[\s:;\-–—·]+", "", text)   # "link: caption" -> "caption"
+                # never keep a picture's file name: "IMG_1.jpg: lake" / "lake IMG_1.jpg" -> "lake"
+                text = re.sub(r"\b(?:WhatsApp (?:Image|Video)|Screenshot|IMG|DSC|DSCN|PXL|VID|PHOTO|Photo|image)[\w\-. ()]*?\.(?:jpe?g|png|gif|webp|avif|heic)\b", "", text, flags=re.I)
+                text = re.sub(r"^.*?\.(?:jpe?g|png|gif|webp|avif|heic)\b(?=[\s:;\-–—·]+\S)[\s:;\-–—·]*", "", text, flags=re.I)
+                text = re.sub(r"\S+\.(?:jpe?g|png|gif|webp|avif|heic)\b", "", text, flags=re.I)
+                text = re.sub(r"^[\s:;\-–—·]+", "", " ".join(text.split()))   # "link: caption" -> "caption"
             blk = dict(blk, images=list(blk["images"]) + [{"src": u, "alt": ""} for u in link_urls])
             for img in blk["images"]:
                 src = localize(img["src"])
@@ -255,8 +260,22 @@ def main():
     except Exception as e:
         print("Could not fetch the doc (is it shared as 'Anyone with the link can view'?):", e)
         return 1
-    used = set()
-    content = build(raw.decode("utf-8", "replace"), lambda u: save_image(u, used))
+    html = raw.decode("utf-8", "replace")
+    print("Fetched the doc: %d characters, %d Drive links, %d <img> tags, %d image-host links" % (
+        len(html), len(re.findall(r"drive\.google\.com", html)), len(re.findall(r"<img\b", html)),
+        len(re.findall(r"postimg|imgur|ibb\.co", html))))
+    used, stats = set(), {"ok": 0, "failed": 0}
+
+    def localize(u):
+        src = save_image(u, used)
+        stats["ok" if src else "failed"] += 1
+        return src
+    content = build(html, localize)
+    notes = [b for s in content["sections"] for b in s["blocks"] if b["type"] == "note"]
+    print("Found %d sections, %d post-its (%d with a picture), profile photo: %s" % (
+        len(content["sections"]), len(notes), sum(1 for n in notes if n["src"]),
+        "yes" if content["avatar"] else "NO"))
+    print("Pictures downloaded: %d, failed: %d" % (stats["ok"], stats["failed"]))
     if not content["sections"]:
         print("Doc parsed but has no Heading 1 sections - leaving content.json untouched.")
         return 1
