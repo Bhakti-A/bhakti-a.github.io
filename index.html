@@ -100,8 +100,8 @@
 
     .notes{display:flex;flex-wrap:wrap;gap:34px 30px;margin-top:26px;padding:6px 4px}
     .note{
-      position:relative;width:240px;padding:14px 14px 18px;
-      font-family:"Caveat", cursive;font-weight:500;font-size:24px;line-height:1.15;text-align:center;
+      position:relative;width:340px;max-width:100%;margin:0;padding:18px 18px 24px;
+      font-family:"Caveat", cursive;font-weight:500;font-size:32px;line-height:1.15;text-align:center;
       box-shadow:2px 5px 9px rgba(60,40,10,.28);
       transition:transform .2s ease, box-shadow .2s ease;
       background:#f7e27a;
@@ -112,7 +112,7 @@
     .note:nth-child(4n+4){background:#aed3e6;transform:rotate(3deg) translateY(6px)}
     .note:hover{transform:rotate(0) scale(1.05);z-index:2;box-shadow:4px 10px 16px rgba(60,40,10,.35)}
     .note img, .note .ph{
-      display:block;width:100%;aspect-ratio:1;object-fit:cover;margin-bottom:10px;
+      display:block;width:100%;aspect-ratio:4/5;object-fit:cover;margin-bottom:12px;
       border:5px solid #fffdf5;box-shadow:inset 0 0 0 1px rgba(0,0,0,.05);
     }
     .note .ph{
@@ -132,7 +132,8 @@
       .page{padding:58px 48px 62px}
       .avatar{width:150px;margin:6px auto 0 0}
       header{gap:24px}
-      .note{width:calc(50% - 15px);font-size:21px;padding:10px 10px 14px}
+      .note{width:min(100%, 300px);margin:0 auto;font-size:28px;padding:14px 14px 20px}
+      .notes{justify-content:center}
     }
     @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
   </style>
@@ -182,17 +183,29 @@
       }
     }
 
+    // Never show a picture's file name: drop anything up to and including ".jpg"/".png"/... and any stray "name.ext" token.
+    function cleanCaption(c){
+      return (c || "")
+        .replace(/\b(?:WhatsApp (?:Image|Video)|Screenshot|IMG|DSC|DSCN|PXL|VID|PHOTO|Photo|image)[\w\-. ()]*?\.(?:jpe?g|png|gif|webp|avif|heic)\b/gi, "")
+        .replace(/^.*?\.(?:jpe?g|png|gif|webp|avif|heic)\b(?=[\s:;\-–—·]+\S)[\s:;\-–—·]*/i, "")
+        .replace(/\S+\.(?:jpe?g|png|gif|webp|avif|heic)\b/gi, "")
+        .replace(/\s+/g, " ")
+        .replace(/^[\s:;\-–—·]+/, "")
+        .trim();
+    }
+
     function renderNote(b){
       const note = el("figure", "note");
+      const caption = cleanCaption(b.caption);
       const src = b.src && safeUrl(b.src);
       if (src){
         const img = el("img");
-        img.src = src; img.alt = b.alt || b.caption || ""; img.loading = "lazy";
+        img.src = src; img.alt = caption || ""; img.loading = "lazy";
         note.appendChild(img);
       } else {
         note.appendChild(el("div", "ph", "photo goes here"));
       }
-      if (b.caption) note.appendChild(el("figcaption", null, b.caption));
+      if (caption) note.appendChild(el("figcaption", null, caption));
       return note;
     }
 
