@@ -5,9 +5,11 @@ The doc must be shared as "Anyone with the link can view". Doc layout:
   Title            -> site name            Subtitle -> tagline
   Image before the first Heading 1 -> profile photo
   Text before the first Heading 1  -> intro
-  Heading 1        -> an interest section (its own subheading on the page)
+  Heading 1        -> a section (e.g. "interests")
+  Heading 2        -> a sub-section inside it (e.g. "mountains")
   Plain text       -> blurb under that subheading
   Image            -> a post-it; text in the same paragraph is its caption
+  "post-it: caption" (no image) -> an empty post-it placeholder
 A section called "find me" / "links" / "contact" renders as a row of links.
 """
 import hashlib, json, os, re, sys, urllib.parse, urllib.request
@@ -144,9 +146,9 @@ def build(html, localize):
             content["title"] = text or content["title"]
         elif kind == "subtitle":
             content["subtitle"] = text
-        elif kind == "h1":
+        elif kind in ("h1", "h2"):
             if text:
-                section = {"title": text, "blocks": []}
+                section = {"title": text, "level": 1 if kind == "h1" else 2, "blocks": []}
                 content["sections"].append(section)
         else:
             for img in blk["images"]:
@@ -155,7 +157,10 @@ def build(html, localize):
                     content["avatar"] = content["avatar"] or {"src": src, "alt": img["alt"] or text}
                 else:
                     section["blocks"].append({"type": "note", "src": src, "alt": img["alt"], "caption": text})
-            if text and not blk["images"]:
+            m = re.match(r"\s*post-?it\s*:\s*(.*)$", text, re.I)
+            if m and not blk["images"] and section is not None:
+                section["blocks"].append({"type": "note", "src": "", "alt": "", "caption": m.group(1)})
+            elif text and not blk["images"]:
                 if section is None:
                     content["intro"].append(runs)
                 else:
