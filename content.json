@@ -1,7 +1,10 @@
 {
   "title": "BHAKTI ASSAR",
   "subtitle": "curious • chaotic • tinkerer",
-  "avatar": null,
+  "avatar": {
+    "src": "images/689661557c62.jpg",
+    "alt": ""
+  },
   "intro": [
     [
       {
@@ -28,13 +31,13 @@
           "type": "note",
           "src": "images/489b9fa10bfd.jpg",
           "alt": "",
-          "caption": "IMG-20220724-WA0010.jpg: everest base camp @ 13"
+          "caption": "everest base camp @ 13"
         },
         {
           "type": "note",
           "src": "images/e2eeea77d465.jpg",
           "alt": "",
-          "caption": "IMG-20261007-WA0038.jpg: kailash @ 11"
+          "caption": "kailash @ 11"
         }
       ]
     },
@@ -46,19 +49,19 @@
           "type": "note",
           "src": "images/36262e559092.jpg",
           "alt": "",
-          "caption": "20260104_001057.jpg: oswald"
+          "caption": "oswald"
         },
         {
           "type": "note",
           "src": "images/5a4ecc34e46e.jpg",
           "alt": "",
-          "caption": "787354fd6d5710e60371cac5a233700c.jpg: spidey"
+          "caption": "spidey"
         },
         {
           "type": "note",
           "src": "images/d21fdeae7572.jpg",
           "alt": "",
-          "caption": "20260131_224751.jpg:"
+          "caption": ""
         }
       ]
     },
@@ -70,37 +73,37 @@
           "type": "note",
           "src": "images/7cf49a5a165e.png",
           "alt": "",
-          "caption": "topview.png: first bot"
+          "caption": "first bot"
         },
         {
           "type": "note",
           "src": "images/97c0fe3a7c24.jpg",
           "alt": "",
-          "caption": "WhatsApp Image 2026-08-13 at 12.08.42 AM.jpeg: first drone"
+          "caption": "first drone"
         },
         {
           "type": "note",
           "src": "images/8f71da44ffa8.jpg",
           "alt": "",
-          "caption": "WhatsApp Image 2026-08-13 at 12.08.43 AM(5).jpeg: fightcontroller"
+          "caption": "fightcontroller"
         },
         {
           "type": "note",
           "src": "images/27037cec6105.jpg",
           "alt": "",
-          "caption": "IMG-20260422-WA0053.jpg: dronesss"
+          "caption": "dronesss"
         },
         {
           "type": "note",
           "src": "images/87b6f66784a4.jpg",
           "alt": "",
-          "caption": "WhatsApp Image 2026-08-13 at 12.08.44 AM.jpeg: dronesss pt2"
+          "caption": "dronesss pt2"
         },
         {
           "type": "note",
           "src": "images/b5d3c28b035a.jpg",
           "alt": "",
-          "caption": "WhatsApp Image 2026-08-13 at 12.08.45 AM.jpeg: dronesss pt3"
+          "caption": "dronesss pt3"
         }
       ]
     }
