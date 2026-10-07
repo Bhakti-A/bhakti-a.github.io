@@ -149,7 +149,6 @@
   <script>
     // Everything on this page comes from content.json, which is synced from a Google Doc
     // by .github/workflows/sync-doc.yml. Edit the doc, not this file.
-    const DEFAULT_AVATAR = {src: "https://i.postimg.cc/vBT0XpHy/mememe.jpg", alt: "Bhakti"};
     const page = document.getElementById("content");
 
     function el(tag, className, text){
@@ -235,14 +234,15 @@
         titleBox.appendChild(intro);
       }
       header.appendChild(titleBox);
-      // photo: the one in the doc if there is one, otherwise the one from the old site
-      const photo = (data.avatar && data.avatar.src && safeUrl(data.avatar.src)) ? data.avatar : DEFAULT_AVATAR;
-      const av = el("div", "avatar");
-      const img = el("img");
-      img.src = safeUrl(photo.src); img.alt = photo.alt || "Bhakti";
-      img.onerror = () => av.remove();
-      av.appendChild(img);
-      header.appendChild(av);
+      // the profile photo comes from the Google Doc (a picture or pic link above the first heading)
+      if (data.avatar && data.avatar.src && safeUrl(data.avatar.src)){
+        const av = el("div", "avatar");
+        const img = el("img");
+        img.src = safeUrl(data.avatar.src); img.alt = data.avatar.alt || "Bhakti";
+        img.onerror = () => av.remove();
+        av.appendChild(img);
+        header.appendChild(av);
+      }
       page.appendChild(header);
       for (const s of data.sections || []) page.appendChild(renderSection(s));
       document.title = (data.title || "Bhakti Assar").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
