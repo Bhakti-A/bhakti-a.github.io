@@ -9,6 +9,8 @@ The doc must be shared as "Anyone with the link can view". Doc layout:
   Heading 2        -> a sub-section inside it (e.g. "mountains")
   Plain text       -> blurb under that subheading
   Image            -> a post-it; text in the same paragraph is its caption
+  Pasted picture LINK (postimg, imgur, Google Drive share link, .jpg/.png url...)
+                   -> treated exactly like an inserted image
   "post-it: caption" (no image) -> an empty post-it placeholder
 A section called "find me" / "links" / "contact" renders as a row of links.
 """
@@ -117,6 +119,66 @@ def plain(runs):
     return " ".join("".join(r["text"] for r in runs).split())
 
 
+IMG_EXT = re.compile(r"\.(jpe?g|png|gif|webp|avif)(\?|#|$)", re.I)
+IMG_HOSTS = ("postimg.cc", "imgur.com", "ibb.co", "pinimg.com", "googleusercontent.com", "drive.google.com",
+             "photos.google.com", "photos.app.goo.gl", "cloudinary.com", "unsplash.com", "flickr.com", "staticflickr.com")
+URL_RE = re.compile(r"https?://[^\s<>\"')\]]+")
+
+
+def is_image_link(url):
+    u = urllib.parse.urlparse(url)
+    host = u.netloc.lower()
+    return bool(IMG_EXT.search(u.path + ("?" + u.query if u.query else ""))) or any(
+        host == h or host.endswith("." + h) for h in IMG_HOSTS)
+
+
+def direct_url(url):
+    """Turn a share link into one that serves the picture itself."""
+    m = re.search(r"drive\.google\.com/(?:file/d/|open\?id=|uc\?[^#]*id=)([\w-]+)", url)
+    if m:
+        return "https://drive.google.com/uc?export=download&id=" + m.group(1)
+    return url
+
+
+def fetch_image(url):
+    data, ctype = fetch(direct_url(url))
+    if ctype.lower().startswith("image/"):
+        return data, ctype
+    # a web page that shows the picture (e.g. postimg.cc/xxxx): use its og:image
+    page = data.decode("utf-8", "replace")
+    m = (re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)', page, re.I)
+         or re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image', page, re.I))
+    if not m:
+        raise ValueError("that link is a web page, not a picture (the picture may be private)")
+    import html as _html
+    data, ctype = fetch(_html.unescape(m.group(1)))
+    if not ctype.lower().startswith("image/"):
+        raise ValueError("could not get a picture from that link")
+    return data, ctype
+
+
+def split_image_links(runs):
+    """Pull picture links out of a paragraph. Returns (remaining runs, [urls])."""
+    urls, rest = [], []
+    for r in runs:
+        href = r.get("href")
+        if href and is_image_link(href):
+            urls.append(href)
+            if not URL_RE.fullmatch(r["text"].strip()):      # nice link text becomes the caption
+                rest.append({"text": r["text"]})
+            continue
+
+        def grab(m):
+            if is_image_link(m.group(0)):
+                urls.append(m.group(0))
+                return " "
+            return m.group(0)
+        r2 = dict(r)
+        r2["text"] = URL_RE.sub(grab, r["text"])
+        rest.append(r2)
+    return tidy(rest), urls
+
+
 def save_image(url, used):
     ext_map = {"image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif", "image/webp": ".webp"}
     name = hashlib.sha1(url.encode()).hexdigest()[:12]
@@ -124,7 +186,11 @@ def save_image(url, used):
         if os.path.exists(os.path.join(ROOT, "images", name + ext)):
             used.add(name + ext)
             return "images/" + name + ext
-    data, ctype = fetch(url)
+    try:
+        data, ctype = fetch_image(url)
+    except Exception as e:
+        print("WARNING: could not load picture %s -> %s" % (url, e))
+        return None
     ext = ext_map.get(ctype.split(";")[0].strip(), ".png")
     os.makedirs(os.path.join(ROOT, "images"), exist_ok=True)
     with open(os.path.join(ROOT, "images", name + ext), "wb") as f:
@@ -151,8 +217,13 @@ def build(html, localize):
                 section = {"title": text, "level": 1 if kind == "h1" else 2, "blocks": []}
                 content["sections"].append(section)
         else:
+            runs, link_urls = split_image_links(runs)
+            text = plain(runs)
+            blk = dict(blk, images=list(blk["images"]) + [{"src": u, "alt": ""} for u in link_urls])
             for img in blk["images"]:
                 src = localize(img["src"])
+                if not src:
+                    continue
                 if section is None:
                     content["avatar"] = content["avatar"] or {"src": src, "alt": img["alt"] or text}
                 else:
