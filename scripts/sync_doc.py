@@ -147,18 +147,34 @@ def direct_url(url):
     return url
 
 
-def fetch_image(url):
-    data, ctype = fetch(direct_url(url))
-    if ctype.lower().startswith("image/"):
-        return data, ctype
-    # a web page that shows the picture (e.g. postimg.cc/xxxx): use its og:image
+def og_image(data):
+    """Pull a page's og:image thumbnail URL out of its raw bytes, if any."""
     page = data.decode("utf-8", "replace")
     m = (re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)', page, re.I)
          or re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image', page, re.I))
-    if not m:
+    return m.group(1) if m else None
+
+
+def fetch_image(url):
+    durl = direct_url(url)
+    data, ctype = fetch(durl)
+    if ctype.lower().startswith("image/"):
+        return data, ctype
+    # Not a direct image - either a web page that shows the picture (e.g. postimg.cc/xxxx),
+    # or (for a Drive VIDEO) the download link serves the raw video, which has no thumbnail
+    # to scrape. Drive's own share/view page always carries an og:image thumbnail though -
+    # for a photo and for a video alike - so fall back to that original link for one.
+    thumb = og_image(data)
+    if not thumb and durl != url:
+        try:
+            data, _ = fetch(url)
+            thumb = og_image(data)
+        except Exception:
+            thumb = None
+    if not thumb:
         raise ValueError("that link is a web page, not a picture (the picture may be private)")
     import html as _html
-    data, ctype = fetch(_html.unescape(m.group(1)))
+    data, ctype = fetch(_html.unescape(thumb))
     if not ctype.lower().startswith("image/"):
         raise ValueError("could not get a picture from that link")
     return data, ctype
