@@ -234,7 +234,9 @@ def build(blocks, localize):
             content["title"] = text or content["title"]
         elif kind == "subtitle":
             content["subtitle"] = text
-        elif kind in ("h1", "h2"):
+        elif kind in ("h1", "h2", "h3", "h4", "h5", "h6"):
+            # any heading level starts a new section; h1 is a top-level section,
+            # anything deeper (h2..h6) is a sub-section under it.
             if text:
                 section = {"title": text, "level": 1 if kind == "h1" else 2, "blocks": []}
                 content["sections"].append(section)
