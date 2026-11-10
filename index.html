@@ -124,6 +124,21 @@
     .links{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:16px;font-size:19px}
     .links p{margin:0}
 
+    /* ---------- contact / blog, right under the name ---------- */
+    .find-me-row{display:flex;flex-wrap:wrap;align-items:flex-start;gap:16px;margin:14px 0 2px}
+    .contact-toggle, .blog-link{
+      font-family:"Caveat", cursive;font-weight:700;font-size:21px;color:var(--accent);
+      background:none;border:none;padding:2px 2px;cursor:pointer;
+      text-decoration:underline wavy rgba(156,74,47,.45);text-underline-offset:4px;
+    }
+    .contact-toggle:hover, .blog-link:hover{color:var(--ink)}
+    .contact-panel{
+      display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+      margin:8px 0 0;font-family:"Kalam","Comic Sans MS",cursive;font-size:17px;
+    }
+    .contact-panel[hidden]{display:none}
+    .contact-panel a{color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
+
     .status{text-align:center;font-family:"Caveat", cursive;font-size:26px;color:var(--ink-soft);padding:30px 0}
     footer{margin-top:60px;text-align:center;font-family:"Caveat", cursive;font-size:20px;color:var(--ink-soft)}
 
@@ -235,12 +250,52 @@
       return sec;
     }
 
+    // the Google Doc's blog lives on a second tab of the same doc; reading it there
+    // (view-only) rather than linking into the editor itself.
+    const BLOG_URL = "https://docs.google.com/document/d/1k7fUc9rxtyC17liS_Tccm3F6ELPZnjosOoqwwN3lBaQ/edit?tab=t.plh0v2wnq64c&rm=minimal";
+
     function render(data){
       page.textContent = "";
       const header = el("header");
       const titleBox = el("div", "title-box");
       titleBox.appendChild(el("h1", null, data.title || "Bhakti Assar"));
       if (data.subtitle) titleBox.appendChild(el("p", "subtitle", data.subtitle));
+
+      // a section named "find me" / "links" / "contact" / "elsewhere" doesn't render
+      // as a scroll-down section like the others — it becomes a click-to-reveal
+      // row right under the name, alongside a static link to the blog.
+      const sections = (data.sections || []).slice();
+      const linksIdx = sections.findIndex(s => /^(find me|links|contact|elsewhere)$/i.test((s.title || "").trim()));
+      const linksSection = linksIdx !== -1 ? sections.splice(linksIdx, 1)[0] : null;
+
+      const findMeRow = el("div", "find-me-row");
+      if (linksSection){
+        const toggle = el("button", "contact-toggle", "✉ " + (linksSection.title || "contact"));
+        toggle.type = "button";
+        toggle.setAttribute("aria-expanded", "false");
+        const panel = el("div", "contact-panel");
+        panel.hidden = true;
+        for (const b of linksSection.blocks){
+          if (b.type !== "p") continue;
+          const p = el("p");
+          renderRuns(p, b.runs);
+          panel.appendChild(p);
+        }
+        toggle.addEventListener("click", () => {
+          const show = panel.hidden;
+          panel.hidden = !show;
+          toggle.setAttribute("aria-expanded", show ? "true" : "false");
+        });
+        findMeRow.appendChild(toggle);
+        findMeRow.appendChild(panel);
+      }
+      const blog = el("a", "blog-link", "📝 blog");
+      blog.href = BLOG_URL;
+      blog.target = "_blank";
+      blog.rel = "noopener noreferrer";
+      findMeRow.appendChild(blog);
+      titleBox.appendChild(findMeRow);
+
       if (data.intro && data.intro.length){
         const intro = el("div", "intro");
         for (const runs of data.intro){ const p = el("p"); renderRuns(p, runs); intro.appendChild(p); }
@@ -257,7 +312,7 @@
         header.appendChild(av);
       }
       page.appendChild(header);
-      for (const s of data.sections || []) page.appendChild(renderSection(s));
+      for (const s of sections) page.appendChild(renderSection(s));
       document.title = (data.title || "Bhakti Assar").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
     }
 
