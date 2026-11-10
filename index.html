@@ -119,6 +119,13 @@
       display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.45);
       border:2px dashed rgba(60,40,10,.35);font-size:18px;color:var(--ink-soft);
     }
+    .note-link{position:relative;display:block}
+    .note-link .play-hint{
+      position:absolute;right:6px;bottom:18px;
+      font-family:"Kalam","Comic Sans MS",cursive;font-size:13px;font-weight:700;
+      color:#fffdf5;background:rgba(59,47,34,.72);padding:2px 8px;border-radius:999px;
+      pointer-events:none;
+    }
 
     /* ---------- links ---------- */
     .links{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:16px;font-size:19px}
@@ -213,13 +220,22 @@
       const note = el("figure", "note");
       const caption = cleanCaption(b.caption);
       const src = b.src && safeUrl(b.src);
+      // b.link is the original Drive/share URL a picture or video came from (when it
+      // came from a pasted link rather than an image embedded directly in the doc).
+      // Wrapping the thumbnail in it means a video post-it actually opens and plays,
+      // not just sits there as a dead picture of itself.
+      const link = b.link && safeUrl(b.link);
+      const mediaHost = link ? el("a", "note-link") : null;
+      if (mediaHost){ mediaHost.href = link; mediaHost.target = "_blank"; mediaHost.rel = "noopener noreferrer"; }
       if (src){
         const img = el("img");
         img.src = src; img.alt = caption || ""; img.loading = "lazy";
-        note.appendChild(img);
+        (mediaHost || note).appendChild(img);
+        if (mediaHost) mediaHost.appendChild(el("span", "play-hint", "▶ view"));
       } else {
-        note.appendChild(el("div", "ph", "photo goes here"));
+        (mediaHost || note).appendChild(el("div", "ph", link ? "tap to view" : "photo goes here"));
       }
+      if (mediaHost) note.appendChild(mediaHost);
       if (caption) note.appendChild(el("figcaption", null, caption));
       return note;
     }
@@ -250,9 +266,10 @@
       return sec;
     }
 
-    // the Google Doc's blog lives on a second tab of the same doc; reading it there
-    // (view-only) rather than linking into the editor itself.
-    const BLOG_URL = "https://docs.google.com/document/d/1k7fUc9rxtyC17liS_Tccm3F6ELPZnjosOoqwwN3lBaQ/edit?tab=t.plh0v2wnq64c&rm=minimal";
+    // the blog is its own page on the site, synced from the doc's second tab into
+    // blog.json by the same workflow that builds content.json. See blog.html.
+    const NAV_LABEL = "📝 blog";
+    const NAV_URL = "blog.html";
 
     function render(data){
       page.textContent = "";
@@ -289,11 +306,9 @@
         findMeRow.appendChild(toggle);
         findMeRow.appendChild(panel);
       }
-      const blog = el("a", "blog-link", "📝 blog");
-      blog.href = BLOG_URL;
-      blog.target = "_blank";
-      blog.rel = "noopener noreferrer";
-      findMeRow.appendChild(blog);
+      const nav = el("a", "blog-link", NAV_LABEL);
+      nav.href = NAV_URL;
+      findMeRow.appendChild(nav);
       titleBox.appendChild(findMeRow);
 
       if (data.intro && data.intro.length){

@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Pull the site's content from a Google Doc and write content.json (+ images/).
 
+If site.config.json has a "blogTabId" (another tab of the same doc), that tab
+is synced the same way into blog.json, rendered by blog.html as its own page.
+
 The doc must be shared as "Anyone with the link can view". Doc layout:
   Title            -> site name            Subtitle -> tagline
   Image before the first Heading 1 -> profile photo
@@ -228,7 +231,7 @@ def build(html, localize):
                 text = re.sub(r"^.*?\.(?:jpe?g|png|gif|webp|avif|heic)\b(?=[\s:;\-–—·]+\S)[\s:;\-–—·]*", "", text, flags=re.I)
                 text = re.sub(r"\S+\.(?:jpe?g|png|gif|webp|avif|heic)\b", "", text, flags=re.I)
                 text = re.sub(r"^[\s:;\-–—·]+", "", " ".join(text.split()))   # "link: caption" -> "caption"
-            blk = dict(blk, images=list(blk["images"]) + [{"src": u, "alt": ""} for u in link_urls])
+            blk = dict(blk, images=list(blk["images"]) + [{"src": u, "alt": "", "link": u} for u in link_urls])
             for img in blk["images"]:
                 src = localize(img["src"])
                 if not src:
@@ -236,7 +239,10 @@ def build(html, localize):
                 if section is None:
                     content["avatar"] = content["avatar"] or {"src": src, "alt": img["alt"] or text}
                 else:
-                    section["blocks"].append({"type": "note", "src": src, "alt": img["alt"], "caption": text})
+                    note = {"type": "note", "src": src, "alt": img["alt"], "caption": text}
+                    if img.get("link"):
+                        note["link"] = img["link"]
+                    section["blocks"].append(note)
             m = re.match(r"\s*post-?it\s*:\s*(.*)$", text, re.I)
             if m and not blk["images"] and section is not None:
                 section["blocks"].append({"type": "note", "src": "", "alt": "", "caption": m.group(1)})
@@ -248,23 +254,24 @@ def build(html, localize):
     return content
 
 
-def main():
-    with open(os.path.join(ROOT, "site.config.json")) as f:
-        doc_id = json.load(f).get("docId", "")
-    if not doc_id or doc_id.startswith("PASTE_"):
-        print("site.config.json has no docId yet - nothing to sync.")
-        return 0
+def sync_one(doc_id, tab_id, out_name, used):
+    """Fetch one doc (optionally one tab of it), parse it, write <out_name>.json.
+    Images are downloaded into images/ and added to the shared `used` set so the
+    final cleanup pass (across all synced docs) doesn't delete a picture that's
+    still referenced by another page."""
     url = "https://docs.google.com/document/d/%s/export?format=html" % doc_id
+    if tab_id:
+        url += "&tab=" + tab_id
     try:
         raw, _ = fetch(url)
     except Exception as e:
-        print("Could not fetch the doc (is it shared as 'Anyone with the link can view'?):", e)
-        return 1
+        print("[%s] Could not fetch the doc (is it shared as 'Anyone with the link can view'?):" % out_name, e)
+        return False
     html = raw.decode("utf-8", "replace")
-    print("Fetched the doc: %d characters, %d Drive links, %d <img> tags, %d image-host links" % (
-        len(html), len(re.findall(r"drive\.google\.com", html)), len(re.findall(r"<img\b", html)),
+    print("[%s] Fetched: %d characters, %d Drive links, %d <img> tags, %d image-host links" % (
+        out_name, len(html), len(re.findall(r"drive\.google\.com", html)), len(re.findall(r"<img\b", html)),
         len(re.findall(r"postimg|imgur|ibb\.co", html))))
-    used, stats = set(), {"ok": 0, "failed": 0}
+    stats = {"ok": 0, "failed": 0}
 
     def localize(u):
         src = save_image(u, used)
@@ -272,25 +279,46 @@ def main():
         return src
     content = build(html, localize)
     notes = [b for s in content["sections"] for b in s["blocks"] if b["type"] == "note"]
-    print("Found %d sections, %d post-its (%d with a picture), profile photo: %s" % (
-        len(content["sections"]), len(notes), sum(1 for n in notes if n["src"]),
+    print("[%s] Found %d sections, %d post-its (%d with a picture), profile photo: %s" % (
+        out_name, len(content["sections"]), len(notes), sum(1 for n in notes if n["src"]),
         "yes" if content["avatar"] else "NO"))
-    print("Pictures downloaded: %d, failed: %d" % (stats["ok"], stats["failed"]))
+    print("[%s] Pictures downloaded: %d, failed: %d" % (out_name, stats["ok"], stats["failed"]))
     if not content["sections"]:
-        print("Doc parsed but has no Heading 1 sections - leaving content.json untouched.")
-        return 1
-    for fn in os.listdir(os.path.join(ROOT, "images")) if os.path.isdir(os.path.join(ROOT, "images")) else []:
-        if fn not in used and fn != ".gitkeep":
-            os.remove(os.path.join(ROOT, "images", fn))
+        print("[%s] Doc parsed but has no Heading 1 sections - leaving %s.json untouched." % (out_name, out_name))
+        return False
     out = json.dumps(content, indent=2, ensure_ascii=False) + "\n"
-    path = os.path.join(ROOT, "content.json")
+    path = os.path.join(ROOT, out_name + ".json")
     if not os.path.exists(path) or open(path, encoding="utf-8").read() != out:
         with open(path, "w", encoding="utf-8") as f:
             f.write(out)
-        print("content.json updated.")
+        print("[%s] %s.json updated." % (out_name, out_name))
     else:
-        print("No changes.")
-    return 0
+        print("[%s] No changes." % out_name)
+    return True
+
+
+def main():
+    with open(os.path.join(ROOT, "site.config.json")) as f:
+        config = json.load(f)
+    doc_id = config.get("docId", "")
+    if not doc_id or doc_id.startswith("PASTE_"):
+        print("site.config.json has no docId yet - nothing to sync.")
+        return 0
+
+    used = set()
+    ok = sync_one(doc_id, None, "content", used)
+
+    blog_tab_id = config.get("blogTabId", "")
+    if blog_tab_id and not blog_tab_id.startswith("PASTE_"):
+        sync_one(doc_id, blog_tab_id, "blog", used)
+    else:
+        print("[blog] No blogTabId set in site.config.json - skipping.")
+
+    for fn in os.listdir(os.path.join(ROOT, "images")) if os.path.isdir(os.path.join(ROOT, "images")) else []:
+        if fn not in used and fn != ".gitkeep":
+            os.remove(os.path.join(ROOT, "images", fn))
+
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
