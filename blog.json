@@ -273,7 +273,8 @@
             {
               "text": " The pretraining range was 31 g to 2.4 kg n my whoop is 35 to 45 g, a pretty edge case. So I retrained for whoop size."
             }
-          ]
+          ],
+          "list": "ul"
         },
         {
           "type": "p",
@@ -285,7 +286,8 @@
             {
               "text": " The policy needs position and velocity and the air75 has nothing for that. So the laptop does the vision and sends position up to the drone through my radio. First I tried an external camera tracking an AruCo on the drone (flight space too small), then visual slam (fpv cam not that great)."
             }
-          ]
+          ],
+          "list": "ul"
         },
         {
           "type": "p",
@@ -315,7 +317,8 @@
             {
               "text": " The video is about 112 ms late, so positions reach the policy 140 to 160 ms old. Plain retraining with delay failed (86 to 92% of sim flights crashed). What worked was making the drone predict, pushing each old position forward using its accelerometer, and training in a nastier sim with real noise and dropped frames. Crashes in sim went down to about 5%."
             }
-          ]
+          ],
+          "list": "ul"
         },
         {
           "type": "p",
@@ -327,7 +330,8 @@
             {
               "text": " Tell the policy to go to 30 cm while it's on the floor and it launches at 1 m/s coz the floor wont let it move. So the target rises gently, and for landing it sinks below the floor. The landing bounced for ages until I found the laptop's height correction was still lifting the floor target. Of course."
             }
-          ]
+          ],
+          "list": "ul"
         },
         {
           "type": "p",
@@ -395,7 +399,8 @@
             {
               "text": " x from the front or back wall, y from the right wall, height from the ceiling. First hover was within ±4 to 5 cm. Then came the fun: front and back readings disagreed, a beam crossing a box edge made the position teleport, and my fix for that hid a real drift when the drone hit the wall. The fix for the fix: only trust a jump if the opposite beam agrees."
             }
-          ]
+          ],
+          "list": "ul"
         },
         {
           "type": "p",
@@ -407,7 +412,8 @@
             {
               "text": " Lawnmower sweeps build a map, one per height, coz a room isn't the same at every height."
             }
-          ]
+          ],
+          "list": "ul"
         },
         {
           "type": "p",
@@ -419,7 +425,8 @@
             {
               "text": " A particle filter finds its position from scratch in 0.3 s. Letting it steer directly failed (too slow, ±25 cm wobble). So the walls steer and the filter is a referee that steps in only when a wall reading looks off."
             }
-          ]
+          ],
+          "list": "ul"
         },
         {
           "type": "p",
@@ -431,7 +438,8 @@
             {
               "text": " It plans a route, marks anything the beams see that isn't in the map, and re-plans every 2 s. It flew around a box it had never seen, passed through a gap of about 60 cm, and mapped the box as it went. It avoids obstacles (mainly me) pretty nicely."
             }
-          ]
+          ],
+          "list": "ul"
         },
         {
           "type": "note",
@@ -463,7 +471,8 @@
             {
               "text": " Every crash got replayed in sim n turned into a new safety check. It also lands if I hit Ctrl+C and cuts the motors at once if I hit Ctrl+\\."
             }
-          ]
+          ],
+          "list": "ul"
         },
         {
           "type": "p",
