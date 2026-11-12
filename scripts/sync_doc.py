@@ -59,6 +59,7 @@ class DocParser(HTMLParser):
         self.span_classes = []     # stack of class strings for open inline tags
         self.href = None
         self.blocks = []           # finished blocks
+        self.lists = []            # open <ul>/<ol> tags: (tag, nesting level)
 
     def style_flags(self, classes):
         b = i = False
@@ -73,12 +74,17 @@ class DocParser(HTMLParser):
         a = dict(attrs)
         if tag == "head": self.in_head = True
         elif tag == "style": self.in_style = True
+        elif tag in ("ul", "ol"):
+            m = re.search(r"lst-[\w]+-(\d+)", a.get("class", ""))      # Google marks nesting as lst-kix_xxx-<level>
+            self.lists.append((tag, int(m.group(1)) if m else max(0, len(self.lists))))
         elif tag in self.BLOCKS and self.block is None:
             cls = a.get("class", "").split()
             kind = tag
             if "title" in cls: kind = "title"
             elif "subtitle" in cls: kind = "subtitle"
             self.block = {"kind": kind, "runs": [], "images": []}
+            if tag == "li" and self.lists:
+                self.block["list"], self.block["level"] = self.lists[-1]
         elif tag == "img" and self.block is not None and a.get("src"):
             self.block["images"].append({"src": a["src"], "alt": a.get("alt", "")})
         elif tag == "br" and self.block is not None:
@@ -91,6 +97,7 @@ class DocParser(HTMLParser):
     def handle_endtag(self, tag):
         if tag == "head": self.in_head = False
         elif tag == "style": self.in_style = False
+        elif tag in ("ul", "ol") and self.lists: self.lists.pop()
         elif tag in ("span", "a", "b", "i", "em", "strong") and self.span_classes:
             self.span_classes.pop()
         if tag == "a": self.href = None
@@ -407,7 +414,12 @@ def build(blocks, localize, localize_video=None):
                 if section is None:
                     content["intro"].append(runs)
                 else:
-                    section["blocks"].append({"type": "p", "runs": runs})
+                    para = {"type": "p", "runs": runs}
+                    if blk.get("list"):                      # a bulleted / numbered item in the doc
+                        para["list"] = blk["list"]           # "ul" or "ol"
+                        if blk.get("level"):
+                            para["level"] = blk["level"]
+                    section["blocks"].append(para)
     return content
 
 

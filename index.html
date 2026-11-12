@@ -24,7 +24,6 @@
       margin:0;
       min-height:100vh;
       max-width:100vw;
-      overflow-x:hidden;
       padding:28px 16px 60px;
       color:var(--ink);
       font-family:"Kalam", "Comic Sans MS", cursive;
@@ -99,9 +98,40 @@
     .blurb{margin:12px 0 0;font-size:18px;line-height:1.75;overflow-wrap:anywhere}
     .blurb a, .intro a, .links a{color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
 
+    /* ---------- bullet / numbered lists, straight from the doc ---------- */
+    .blist{margin:12px 0 0;padding-left:1.6em}
+    .blist li{margin:0 0 .7em;font-size:18px;line-height:1.75;overflow-wrap:anywhere}
+    ul.blist{list-style:none}
+    ul.blist > li{position:relative}
+    ul.blist > li::before{content:"";position:absolute;left:-1.15em;top:.78em;width:.5em;height:.5em;border-radius:50%;background:var(--accent)}
+    ol.blist > li::marker{color:var(--accent);font-weight:700}
+    .blist strong{color:var(--accent)}
+
+    /* ---------- timeline of sub-headings, built from the doc's headings ---------- */
+    .layout{margin-top:8px}
+    .layout.has-timeline{display:grid;grid-template-columns:190px minmax(0, 1fr);gap:0 40px;align-items:start}
+    .main{min-width:0}
+    .main section{scroll-margin-top:22px}
+    .timeline{position:sticky;top:22px;align-self:start;margin-top:52px}
+    .timeline ol{list-style:none;margin:0;padding:0;position:relative}
+    .timeline ol::before{content:"";position:absolute;left:7px;top:12px;bottom:18px;width:2px;background:rgba(109,91,69,.35)}
+    .timeline li{position:relative;padding:0 0 14px 28px}
+    .timeline li::before{
+      content:"";position:absolute;left:0;top:6px;width:16px;height:16px;border-radius:50%;
+      background:var(--paper);border:3px solid var(--ink-soft);transition:background .2s, border-color .2s, transform .2s;
+    }
+    .timeline li.active::before{background:var(--accent);border-color:var(--accent);transform:scale(1.15)}
+    .timeline a{
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+      font-family:"Caveat", cursive;font-size:22px;line-height:1.2;color:var(--ink-soft);text-decoration:none;
+    }
+    .timeline a:hover{color:var(--ink)}
+    .timeline li.active a{color:var(--accent);font-weight:700}
+
     /* ---------- pictures & videos: plain rectangles, click to enlarge ---------- */
-    .gallery{display:grid;grid-template-columns:repeat(auto-fill, minmax(min(100%, 250px), 1fr));gap:20px;margin:22px 0 10px}
-    .shot{margin:0;min-width:0}
+    .gallery{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;margin:22px 0 10px}
+    .shot{margin:0;flex:0 1 280px;min-width:0;max-width:100%}
+    .gallery .shot:only-child{flex-basis:340px}
     .frame{
       position:relative;display:block;width:100%;aspect-ratio:4/3;padding:0;border:0;margin:0;
       background:#2b2118;cursor:zoom-in;overflow:hidden;border-radius:4px;
@@ -116,7 +146,7 @@
       width:58px;height:58px;border-radius:50%;background:rgba(20,14,8,.65);color:#fffdf5;font-size:22px;
       box-shadow:0 0 0 3px rgba(255,253,245,.8);
     }
-    .shot figcaption{margin-top:6px;font-family:"Caveat", cursive;font-size:22px;line-height:1.2;color:var(--ink-soft);overflow-wrap:anywhere}
+    .shot figcaption{margin-top:6px;text-align:center;font-family:"Caveat", cursive;font-size:22px;line-height:1.2;color:var(--ink-soft);overflow-wrap:anywhere}
 
     /* ---------- enlarged view ---------- */
     .lb{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -163,11 +193,22 @@
 
     @media (max-width:640px){
       body{padding:14px 8px 40px}
+      .layout.has-timeline{display:block}
+      .timeline{position:sticky;top:0;z-index:6;margin:14px -6px 0;padding:8px 6px 4px;background:var(--paper);border-bottom:1px dashed rgba(109,91,69,.4)}
+      .timeline ol{display:flex;gap:4px 18px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+      .timeline ol::-webkit-scrollbar{display:none}
+      .timeline ol::before{display:none}
+      .timeline li{flex:none;padding:0 0 4px 22px}
+      .timeline li::before{top:5px;width:13px;height:13px;border-width:2.5px}
+      .timeline a{display:block;-webkit-line-clamp:unset;white-space:nowrap}
+      .main section{scroll-margin-top:64px}
       .page{padding:44px 30px 48px}
       .avatar{width:150px;margin:6px auto 0 0}
       header{gap:24px}
       .blurb{font-size:17px}
-      .gallery{grid-template-columns:repeat(auto-fill, minmax(min(100%, 150px), 1fr));gap:12px}
+      .gallery{gap:12px}
+      .shot{flex-basis:calc(50% - 6px)}
+      .gallery .shot:only-child{flex-basis:min(100%, 300px)}
       .lb-prev,.lb-next{top:auto;bottom:14px;transform:none}
     }
     @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
@@ -291,21 +332,64 @@
     function renderSection(s){
       const sec = el("section", s.level === 2 ? "sub" : null);
       sec.appendChild(el("h2", null, s.title));
-      let gallery = null;
+      let gallery = null, list = null;
       for (const b of s.blocks){
         if (b.type === "note"){
+          list = null;
           const shot = renderShot(b);
           if (!shot) continue;
           if (!gallery){ gallery = el("div", "gallery"); sec.appendChild(gallery); }
           gallery.appendChild(shot);
-        } else {
+        } else if (b.list){
+          // a bulleted / numbered item, exactly as it's formatted in the doc
           gallery = null;
+          const kind = b.list === "ol" ? "ol" : "ul";
+          if (!list || list.tagName.toLowerCase() !== kind){ list = el(kind, "blist"); sec.appendChild(list); }
+          const li = el("li");
+          if (b.level) li.style.marginLeft = (b.level * 1.4) + "em";
+          renderRuns(li, b.runs);
+          list.appendChild(li);
+        } else {
+          gallery = null; list = null;
           const p = el("p", "blurb");
           renderRuns(p, b.runs);
           sec.appendChild(p);
         }
       }
       return sec;
+    }
+
+    // A side timeline of the doc's sub-headings (or its headings, if there are no sub-headings).
+    // Nothing to maintain: add or rename a heading in the doc and the timeline follows.
+    function buildTimeline(entries, secEls){
+      const nav = el("nav", "timeline");
+      nav.setAttribute("aria-label", "sections");
+      const ol = el("ol");
+      const items = entries.map(s => {
+        const li = el("li");
+        const a = el("a", null, s.title);
+        a.href = "#" + secEls.get(s).id; a.title = s.title;
+        li.appendChild(a); ol.appendChild(li);
+        return { li, sec: secEls.get(s) };
+      });
+      nav.appendChild(ol);
+      let ticking = false;
+      const update = () => {
+        ticking = false;
+        let cur = 0;
+        const line = innerHeight * 0.35;
+        items.forEach((it, i) => { if (it.sec.getBoundingClientRect().top <= line) cur = i; });
+        if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) cur = items.length - 1;
+        items.forEach((it, i) => it.li.classList.toggle("active", i === cur));
+        // on phones the timeline is a sideways strip: keep the current dot in view
+        const act = items[cur].li;
+        if (ol.scrollWidth > ol.clientWidth) ol.scrollTo({ left: act.offsetLeft - 16, behavior: "smooth" });
+      };
+      const onScroll = () => { if (!ticking){ ticking = true; requestAnimationFrame(update); } };
+      addEventListener("scroll", onScroll, { passive: true });
+      addEventListener("resize", onScroll);
+      update();
+      return nav;
     }
 
     // ---------- enlarged view ----------
@@ -433,7 +517,18 @@
         header.appendChild(av);
       }
       page.appendChild(header);
-      for (const s of sections) page.appendChild(renderSection(s));
+      const layout = el("div", "layout");
+      const main = el("div", "main");
+      const secEls = new Map();
+      sections.forEach((s, i) => { const e = renderSection(s); e.id = "sec-" + (i + 1); secEls.set(s, e); main.appendChild(e); });
+      const subs = sections.filter(s => s.level === 2);
+      const entries = subs.length ? subs : sections;
+      if (entries.length >= 2){
+        layout.classList.add("has-timeline");
+        layout.appendChild(buildTimeline(entries, secEls));
+      }
+      layout.appendChild(main);
+      page.appendChild(layout);
       document.title = (data.title || "Bhakti Assar").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
     }
 
