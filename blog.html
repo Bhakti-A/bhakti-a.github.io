@@ -107,8 +107,8 @@
       background:#2b2118;cursor:zoom-in;overflow:hidden;border-radius:4px;
       box-shadow:0 2px 8px rgba(60,40,10,.3);
     }
-    .frame img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .25s ease}
-    .frame:hover img{transform:scale(1.04)}
+    .frame img, .frame video{display:block;width:100%;height:100%;object-fit:cover;transition:transform .25s ease;pointer-events:none}
+    .frame:hover img, .frame:hover video{transform:scale(1.04)}
     .frame:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
     .frame .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
     .frame .play::before{
@@ -123,6 +123,7 @@
         gap:12px;padding:56px 12px 20px;background:rgba(20,14,8,.93)}
     .lb[hidden]{display:none}
     .lb-stage{display:flex;align-items:center;justify-content:center;width:100%;min-height:0}
+    .lb-stage video{display:block;max-width:94vw;max-height:80vh;width:auto;height:auto;border-radius:3px;background:#000}
     .lb-stage img{display:block;max-width:94vw;max-height:80vh;width:auto;height:auto;border-radius:3px}
     .lb-stage iframe{display:block;border:0;width:min(94vw, 1100px);aspect-ratio:16/9;max-height:80vh;border-radius:3px;background:#000}
     .lb-cap{max-width:90vw;text-align:center;color:#f3e8cf;font-family:"Caveat", cursive;font-size:24px;min-height:1em}
@@ -148,11 +149,13 @@
     }
     .contact-toggle:hover, .blog-link:hover{color:var(--ink)}
     .contact-panel{
-      display:flex;flex-direction:column;align-items:flex-start;gap:4px;
-      margin:8px 0 0;font-family:"Kalam","Comic Sans MS",cursive;font-size:17px;
+      display:flex;flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 0;
+      margin:8px 0 0;font-family:"Kalam","Comic Sans MS",cursive;font-size:18px;
       max-width:100%;overflow-wrap:anywhere;
     }
     .contact-panel[hidden]{display:none}
+    .contact-panel p{margin:0}
+    .contact-panel p + p::before{content:"|";margin:0 12px;color:var(--ink-soft)}
     .contact-panel a{color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
 
     .status{text-align:center;font-family:"Caveat", cursive;font-size:26px;color:var(--ink-soft);padding:30px 0}
@@ -231,16 +234,39 @@
 
     function driveThumb(id){ return "https://drive.google.com/thumbnail?id=" + encodeURIComponent(id) + "&sz=w800"; }
 
+    // play a tile's video only while it's on screen (saves battery/data); respects "reduce motion"
+    const reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const io = ("IntersectionObserver" in window) ? new IntersectionObserver(entries => {
+      for (const e of entries){
+        if (e.isIntersecting){ const p = e.target.play(); if (p && p.catch) p.catch(() => {}); }
+        else e.target.pause();
+      }
+    }, { threshold: 0.25 }) : null;
+    function autoplayWhenVisible(v){
+      if (reduceMotion) return;
+      if (io) io.observe(v); else { const p = v.play(); if (p && p.catch) p.catch(() => {}); }
+    }
+
     function renderShot(b){
       const caption = cleanCaption(b.caption);
       const fig = el("figure", "shot");
       const frame = el("button", "frame");
       frame.type = "button";
       frame.setAttribute("aria-label", (b.video ? "play video" : "enlarge picture") + (caption ? ": " + caption : ""));
-      const item = { caption, video: !!b.video, src: b.src && safeUrl(b.src), drive: b.drive };
-      if (item.video){
-        // Drive videos play in Drive's own embedded player (never a link out); the poster is
-        // Drive's thumbnail if the viewer's browser can load it, else a plain dark rectangle.
+      const item = { caption, video: !!b.video, src: b.src && safeUrl(b.src), drive: b.drive,
+                     vsrc: b.vsrc && safeUrl(b.vsrc), poster: b.poster && safeUrl(b.poster) };
+      if (item.video && item.vsrc){
+        // a video that was downloaded into the site: plays by itself, muted and looping like a GIF
+        // (browsers only allow autoplay when muted). Click it for the big view with sound + controls.
+        const v = el("video");
+        v.src = item.vsrc; if (item.poster) v.poster = item.poster;
+        v.muted = true; v.defaultMuted = true; v.loop = true; v.playsInline = true;
+        v.setAttribute("muted", ""); v.setAttribute("playsinline", ""); v.preload = "metadata";
+        frame.appendChild(v);
+        autoplayWhenVisible(v);
+      } else if (item.video){
+        // too big to download: Drive's own embedded player in the big view, never a link out.
+        // The poster is Drive's thumbnail if the viewer's browser can load it, else a dark rectangle.
         if (item.drive){
           const img = el("img"); img.src = driveThumb(item.drive); img.alt = ""; img.loading = "lazy";
           img.onerror = () => img.remove();
@@ -300,7 +326,13 @@
       lbIndex = (i + media.length) % media.length;
       const m = media[lbIndex];
       lbStage.textContent = "";                       // also stops a playing video
-      if (m.video){
+      if (m.video && m.vsrc){
+        const v = el("video");
+        v.src = m.vsrc; if (m.poster) v.poster = m.poster;
+        v.controls = true; v.autoplay = true; v.loop = true; v.playsInline = true;
+        lbStage.appendChild(v);
+        const p = v.play(); if (p && p.catch) p.catch(() => {});
+      } else if (m.video){
         const f = el("iframe");
         f.src = "https://drive.google.com/file/d/" + encodeURIComponent(m.drive) + "/preview";
         f.allow = "autoplay; fullscreen";

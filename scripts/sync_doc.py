@@ -21,7 +21,7 @@ The doc must be shared as "Anyone with the link can view". Doc layout:
   "post-it: caption" (no image) -> an empty post-it placeholder
 A section called "find me" / "links" / "contact" renders as a row of links.
 """
-import hashlib, json, os, re, sys, urllib.parse, urllib.request
+import hashlib, json, os, re, shutil, subprocess, sys, urllib.parse, urllib.request
 from html.parser import HTMLParser
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -237,6 +237,104 @@ def save_image(url, used):
     return "images/" + name + ext
 
 
+MAX_VIDEO_OUT = 25 * 1024 * 1024        # a converted clip bigger than this isn't worth keeping in the repo
+MAX_VIDEO_RAW_FFMPEG = 150 * 1024 * 1024  # biggest original we'll download when we can shrink it
+MAX_VIDEO_RAW_PLAIN = 25 * 1024 * 1024    # ...and when we can't
+
+
+def _sniff_video(path):
+    with open(path, "rb") as f:
+        head = f.read(12)
+    return head[4:8] == b"ftyp" or head[:4] == b"\x1a\x45\xdf\xa3"     # mp4/mov or webm
+
+
+def download_video(file_id, cap):
+    """Stream a Drive video to a temp file in images/. None if it isn't a real video or is over the cap."""
+    os.makedirs(os.path.join(ROOT, "images"), exist_ok=True)
+    tmp = os.path.join(ROOT, "images", ".tmp-" + file_id)
+    for url in ("https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t" % file_id,
+                "https://drive.google.com/uc?export=download&id=%s" % file_id):
+        try:
+            req = urllib.request.Request(url, headers=UA)
+            with urllib.request.urlopen(req, timeout=60) as r:
+                ctype = r.headers.get("Content-Type", "").lower()
+                if not (ctype.startswith("video/") or ctype.startswith("application/octet-stream")):
+                    continue
+                size = 0
+                with open(tmp, "wb") as f:
+                    while True:
+                        chunk = r.read(1 << 20)
+                        if not chunk:
+                            break
+                        size += len(chunk)
+                        if size > cap:
+                            raise ValueError("bigger than %d MB" % (cap // 1048576))
+                        f.write(chunk)
+            if _sniff_video(tmp):
+                return tmp
+        except Exception as e:
+            print("  could not download video %s: %s" % (file_id, e))
+        if os.path.exists(tmp):
+            os.remove(tmp)
+    return None
+
+
+def save_video(file_id, used):
+    """Download a Drive video into images/ as a small, widely-playable mp4 (+ a poster frame)
+    so the site can autoplay it. Returns {"vsrc", "poster"} or None (then the site uses Drive's player)."""
+    name = "v-" + hashlib.sha1(file_id.encode()).hexdigest()[:12]
+    mp4, jpg = name + ".mp4", name + ".jpg"
+    imgdir = os.path.join(ROOT, "images")
+    if os.path.exists(os.path.join(imgdir, mp4)):                      # already converted on an earlier sync
+        used.add(mp4)
+        has_poster = os.path.exists(os.path.join(imgdir, jpg))
+        if has_poster:
+            used.add(jpg)
+        return {"vsrc": "images/" + mp4, "poster": "images/" + jpg if has_poster else None}
+    ffmpeg = shutil.which("ffmpeg")
+    tmp = download_video(file_id, MAX_VIDEO_RAW_FFMPEG if ffmpeg else MAX_VIDEO_RAW_PLAIN)
+    if not tmp:
+        return None
+    dest = os.path.join(imgdir, mp4)
+    try:
+        converted = False
+        if ffmpeg:
+            try:
+                subprocess.run([ffmpeg, "-y", "-v", "error", "-i", tmp, "-vf", "scale=-2:min(ih\\,720)",
+                                "-c:v", "libx264", "-preset", "veryfast", "-crf", "28", "-pix_fmt", "yuv420p",
+                                "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", dest],
+                               check=True, capture_output=True, timeout=900)
+                converted = True
+            except Exception as e:
+                print("  ffmpeg could not convert %s: %s" % (file_id, e))
+                if os.path.exists(dest):
+                    os.remove(dest)
+        if not converted:
+            if os.path.getsize(tmp) > MAX_VIDEO_OUT:
+                return None
+            shutil.copyfile(tmp, dest)
+        if os.path.getsize(dest) > MAX_VIDEO_OUT:
+            print("  video %s is still over 25 MB after converting - using Drive's player instead" % file_id)
+            os.remove(dest)
+            return None
+        poster = None
+        if ffmpeg:
+            try:
+                subprocess.run([ffmpeg, "-y", "-v", "error", "-ss", "0.3", "-i", dest, "-frames:v", "1",
+                                "-vf", "scale=-2:min(ih\\,540)", "-q:v", "5", os.path.join(imgdir, jpg)],
+                               check=True, capture_output=True, timeout=120)
+                poster = "images/" + jpg
+                used.add(jpg)
+            except Exception:
+                poster = None
+        used.add(mp4)
+        print("saved video %s (%d KB) from Drive file %s" % (mp4, os.path.getsize(dest) // 1024, file_id))
+        return {"vsrc": "images/" + mp4, "poster": poster}
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+
+
 def split_tabs(blocks):
     """Google's export concatenates every tab into one blocks list. Each tab
     starts with its own Title-styled paragraph, so split there."""
@@ -251,7 +349,7 @@ def split_tabs(blocks):
     return tabs
 
 
-def build(blocks, localize):
+def build(blocks, localize, localize_video=None):
     content = {"title": "", "subtitle": "", "avatar": None, "intro": [], "sections": []}
     section = None
     for blk in blocks:
@@ -283,10 +381,15 @@ def build(blocks, localize):
                 if src == VIDEO:
                     # a Drive video: no picture to download, the site embeds Drive's player
                     if section is not None:
-                        section["blocks"].append({
-                            "type": "note", "src": "", "alt": img["alt"], "caption": text,
-                            "link": img.get("link") or img["src"], "video": True,
-                            "drive": drive_id(img.get("link") or img["src"])})
+                        did = drive_id(img.get("link") or img["src"])
+                        note = {"type": "note", "src": "", "alt": img["alt"], "caption": text,
+                                "link": img.get("link") or img["src"], "video": True, "drive": did}
+                        local = localize_video(did) if (localize_video and did) else None
+                        if local:
+                            note["vsrc"] = local["vsrc"]
+                            if local.get("poster"):
+                                note["poster"] = local["poster"]
+                        section["blocks"].append(note)
                     continue
                 if not src:
                     continue
@@ -319,7 +422,7 @@ def sync_one(blocks, out_name, used, required):
         src = save_image(u, used)
         stats["video" if src == VIDEO else "ok" if src else "failed"] += 1
         return src
-    content = build(blocks, localize)
+    content = build(blocks, localize, lambda fid: save_video(fid, used))
     notes = [b for s in content["sections"] for b in s["blocks"] if b["type"] == "note"]
     print("[%s] Found %d sections, %d post-its (%d with a picture), profile photo: %s" % (
         out_name, len(content["sections"]), len(notes), sum(1 for n in notes if n["src"] or n.get("video")),
