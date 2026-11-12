@@ -35,6 +35,15 @@
           ]
         },
         {
+          "type": "note",
+          "src": "",
+          "alt": "",
+          "caption": "",
+          "link": "https://drive.google.com/file/d/1aDkUsGsFXGZ95_6EBXvnDtRdNB9omO41/view?usp=sharing",
+          "video": true,
+          "drive": "1aDkUsGsFXGZ95_6EBXvnDtRdNB9omO41"
+        },
+        {
           "type": "p",
           "runs": [
             {
@@ -126,12 +135,30 @@
           ]
         },
         {
+          "type": "note",
+          "src": "",
+          "alt": "",
+          "caption": "",
+          "link": "https://drive.google.com/file/d/14mWNf8PtOW-CF4zriq0aOTGc641VJxfU/view?usp=sharing",
+          "video": true,
+          "drive": "14mWNf8PtOW-CF4zriq0aOTGc641VJxfU"
+        },
+        {
           "type": "p",
           "runs": [
             {
               "text": "Then those flew. But the obsession wasn't just flying anymore. It was the whole process. I fell in love with it."
             }
           ]
+        },
+        {
+          "type": "note",
+          "src": "",
+          "alt": "",
+          "caption": "",
+          "link": "https://drive.google.com/file/d/1iME-ZCq44_gV0ulXoBg4TUaRUpzDsYUH/view?usp=sharing",
+          "video": true,
+          "drive": "1iME-ZCq44_gV0ulXoBg4TUaRUpzDsYUH"
         },
         {
           "type": "p",
@@ -266,6 +293,15 @@
           ]
         },
         {
+          "type": "note",
+          "src": "",
+          "alt": "",
+          "caption": "",
+          "link": "https://drive.google.com/file/d/1tBdwF0gnagZjHwuRxuA4BMiW0y5488Nk/view?usp=sharing",
+          "video": true,
+          "drive": "1tBdwF0gnagZjHwuRxuA4BMiW0y5488Nk"
+        },
+        {
           "type": "p",
           "runs": [
             {
@@ -312,6 +348,15 @@
               "text": "The drones own fpv camera as a position sensor worked better than expected, up to the limits of analog video. So yeah, worth everything."
             }
           ]
+        },
+        {
+          "type": "note",
+          "src": "",
+          "alt": "",
+          "caption": "",
+          "link": "https://drive.google.com/file/d/1uiifD9Ypvzut7ttJ4vieqLZOhec8ReTY/view?usp=sharing",
+          "video": true,
+          "drive": "1uiifD9Ypvzut7ttJ4vieqLZOhec8ReTY"
         }
       ]
     },
@@ -384,6 +429,24 @@
           ]
         },
         {
+          "type": "note",
+          "src": "",
+          "alt": "",
+          "caption": "",
+          "link": "https://drive.google.com/file/d/1scXCeD5MRk0E2Wo0qEwB5INyxaVcR_Zb/view?usp=sharing",
+          "video": true,
+          "drive": "1scXCeD5MRk0E2Wo0qEwB5INyxaVcR_Zb"
+        },
+        {
+          "type": "note",
+          "src": "",
+          "alt": "",
+          "caption": "",
+          "link": "https://drive.google.com/file/d/1d49z6EsdHPIXz9rTlX5QtFYXC1wFMIU2/view?usp=sharing",
+          "video": true,
+          "drive": "1d49z6EsdHPIXz9rTlX5QtFYXC1wFMIU2"
+        },
+        {
           "type": "p",
           "runs": [
             {
@@ -402,6 +465,15 @@
               "text": "Then ported RAPTOR on it too. It runs on wall position instead of mocap, PID handles takeoff and landing, and it falls back to PID within 0.2 s if the laptop stops engaging. Hover held within a median of 4.2 cm sideways and 2.5 cm in height. The figure eight with changing height tracked within about 8 to 10 cm median, max around 20 cm. One catch: it hovers at about 73% thrust vs 63% for PID, so there's little headroom for aggressive moves."
             }
           ]
+        },
+        {
+          "type": "note",
+          "src": "",
+          "alt": "",
+          "caption": "",
+          "link": "https://drive.google.com/file/d/1E4qDSuF_TMxVoYZsxHDlmq3R5sFBzVnp/view?usp=sharing",
+          "video": true,
+          "drive": "1E4qDSuF_TMxVoYZsxHDlmq3R5sFBzVnp"
         }
       ]
     },
