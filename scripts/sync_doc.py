@@ -28,11 +28,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UA = {"User-Agent": "Mozilla/5.0 (site-sync)"}
 
 
-def fetch(url):
+def fetch(url, image_only=False):
+    """Download a URL. With image_only, a non-image response (a web page, or a big
+    video file) is only read as far as needed to look for an og:image tag."""
     req = urllib.request.Request(url, headers=UA)
     with urllib.request.urlopen(req, timeout=60) as r:
-        return r.read(), r.headers.get("Content-Type", "")
-
+        ctype = r.headers.get("Content-Type", "")
+        if image_only and not ctype.lower().startswith("image/"):
+            return r.read(400000), ctype
+        return r.read(), ctype
 
 def unwrap(href):
     """Google wraps outbound links as google.com/url?q=<real>."""
@@ -147,6 +151,11 @@ def direct_url(url):
     return url
 
 
+def drive_id(url):
+    m = re.search(r"drive\.google\.com/(?:file/d/|open\?id=|uc\?[^#]*id=)([\w-]+)", url or "")
+    return m.group(1) if m else None
+
+
 def og_image(data):
     """Pull a page's og:image thumbnail URL out of its raw bytes, if any."""
     page = data.decode("utf-8", "replace")
@@ -155,22 +164,19 @@ def og_image(data):
     return m.group(1) if m else None
 
 
+class NotAPicture(Exception):
+    pass
+
+
 def fetch_image(url):
-    durl = direct_url(url)
-    data, ctype = fetch(durl)
+    data, ctype = fetch(direct_url(url), image_only=True)
     if ctype.lower().startswith("image/"):
         return data, ctype
-    # Not a direct image - either a web page that shows the picture (e.g. postimg.cc/xxxx),
-    # or (for a Drive VIDEO) the download link serves the raw video, which has no thumbnail
-    # to scrape. Drive's own share/view page always carries an og:image thumbnail though -
-    # for a photo and for a video alike - so fall back to that original link for one.
+    if drive_id(url):
+        # a Drive file that isn't a picture is a video - the site plays it with Drive's own player
+        raise NotAPicture(ctype or "not an image")
+    # a web page that shows the picture (e.g. postimg.cc/xxxx): use its og:image
     thumb = og_image(data)
-    if not thumb and durl != url:
-        try:
-            data, _ = fetch(url)
-            thumb = og_image(data)
-        except Exception:
-            thumb = None
     if not thumb:
         raise ValueError("that link is a web page, not a picture (the picture may be private)")
     import html as _html
@@ -204,6 +210,9 @@ def split_image_links(runs):
     return tidy(rest), urls
 
 
+VIDEO = "video"   # what save_image returns for a Drive video: there's no picture to save
+
+
 def save_image(url, used):
     ext_map = {"image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif", "image/webp": ".webp"}
     name = hashlib.sha1(url.encode()).hexdigest()[:12]
@@ -213,6 +222,9 @@ def save_image(url, used):
             return "images/" + name + ext
     try:
         data, ctype = fetch_image(url)
+    except NotAPicture:
+        print("video: %s (embedded with Drive's player)" % url)
+        return VIDEO
     except Exception as e:
         print("WARNING: could not load picture %s -> %s" % (url, e))
         return None
@@ -268,6 +280,14 @@ def build(blocks, localize):
             blk = dict(blk, images=list(blk["images"]) + [{"src": u, "alt": "", "link": u} for u in link_urls])
             for img in blk["images"]:
                 src = localize(img["src"])
+                if src == VIDEO:
+                    # a Drive video: no picture to download, the site embeds Drive's player
+                    if section is not None:
+                        section["blocks"].append({
+                            "type": "note", "src": "", "alt": img["alt"], "caption": text,
+                            "link": img.get("link") or img["src"], "video": True,
+                            "drive": drive_id(img.get("link") or img["src"])})
+                    continue
                 if not src:
                     continue
                 if section is None:
@@ -293,18 +313,19 @@ def sync_one(blocks, out_name, used, required):
     Images (and pasted video links) are downloaded into images/ and added to
     the shared `used` set so the final cleanup pass doesn't delete a picture
     that's still referenced by another page."""
-    stats = {"ok": 0, "failed": 0}
+    stats = {"ok": 0, "video": 0, "failed": 0}
 
     def localize(u):
         src = save_image(u, used)
-        stats["ok" if src else "failed"] += 1
+        stats["video" if src == VIDEO else "ok" if src else "failed"] += 1
         return src
     content = build(blocks, localize)
     notes = [b for s in content["sections"] for b in s["blocks"] if b["type"] == "note"]
     print("[%s] Found %d sections, %d post-its (%d with a picture), profile photo: %s" % (
-        out_name, len(content["sections"]), len(notes), sum(1 for n in notes if n["src"]),
+        out_name, len(content["sections"]), len(notes), sum(1 for n in notes if n["src"] or n.get("video")),
         "yes" if content["avatar"] else "NO"))
-    print("[%s] Pictures/videos downloaded: %d, failed: %d" % (out_name, stats["ok"], stats["failed"]))
+    print("[%s] Pictures downloaded: %d, videos embedded: %d, failed: %d" % (
+        out_name, stats["ok"], stats["video"], stats["failed"]))
     if not content["sections"]:
         if required:
             print("[%s] Doc parsed but has no Heading 1 sections - leaving %s.json untouched." % (out_name, out_name))

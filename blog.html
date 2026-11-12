@@ -39,10 +39,9 @@
 
     /* ---------- the cut-out page ---------- */
     .page-shadow{
-      max-width:1280px;
+      max-width:1180px;
       margin:0 auto;
       filter:drop-shadow(3px 6px 6px rgba(70,45,15,.35)) drop-shadow(0 18px 24px rgba(70,45,15,.25));
-      transform:rotate(-.6deg);
     }
     .page{
       background:
@@ -79,7 +78,7 @@
       font-size:clamp(34px, 7vw, 58px);letter-spacing:.06em;line-height:1.05;
     }
     .subtitle{margin:10px 0 0;font-family:"Caveat", cursive;font-size:30px;color:var(--accent)}
-    .intro{margin:20px 0 0;font-size:18px;line-height:1.7;max-width:60ch;overflow-wrap:anywhere}
+    .intro{margin:20px 0 0;font-size:18px;line-height:1.7;overflow-wrap:anywhere}
     .intro p{margin:0 0 8px}
 
     /* ---------- interest sections ---------- */
@@ -97,38 +96,44 @@
       font-family:"Caveat", cursive;font-weight:700;font-size:40px;letter-spacing:0;
       text-decoration:underline wavy rgba(156,74,47,.45);text-underline-offset:6px;
     }
-    .blurb{margin:10px 0 0;font-size:17px;line-height:1.7;max-width:62ch;overflow-wrap:anywhere}
+    .blurb{margin:12px 0 0;font-size:18px;line-height:1.75;overflow-wrap:anywhere}
     .blurb a, .intro a, .links a{color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
 
-    .notes{display:flex;flex-wrap:wrap;gap:34px 30px;margin-top:26px;padding:6px 4px}
-    .note{
-      position:relative;width:340px;max-width:100%;margin:0;padding:18px 18px 24px;
-      font-family:"Caveat", cursive;font-weight:500;font-size:32px;line-height:1.15;text-align:center;
-      overflow-wrap:anywhere;
-      box-shadow:2px 5px 9px rgba(60,40,10,.28);
-      transition:transform .2s ease, box-shadow .2s ease;
-      background:#f7e27a;
+    /* ---------- pictures & videos: plain rectangles, click to enlarge ---------- */
+    .gallery{display:grid;grid-template-columns:repeat(auto-fill, minmax(min(100%, 250px), 1fr));gap:20px;margin:22px 0 10px}
+    .shot{margin:0;min-width:0}
+    .frame{
+      position:relative;display:block;width:100%;aspect-ratio:4/3;padding:0;border:0;margin:0;
+      background:#2b2118;cursor:zoom-in;overflow:hidden;border-radius:4px;
+      box-shadow:0 2px 8px rgba(60,40,10,.3);
     }
-    .note:nth-child(4n+1){background:#f7e27a;transform:rotate(-3deg)}
-    .note:nth-child(4n+2){background:#f4b6c2;transform:rotate(2.5deg) translateY(8px)}
-    .note:nth-child(4n+3){background:#b9dfb4;transform:rotate(-1.5deg)}
-    .note:nth-child(4n+4){background:#aed3e6;transform:rotate(3deg) translateY(6px)}
-    .note:hover{transform:rotate(0) scale(1.05);z-index:2;box-shadow:4px 10px 16px rgba(60,40,10,.35)}
-    .note img, .note .ph{
-      display:block;width:100%;aspect-ratio:4/5;object-fit:cover;margin-bottom:12px;
-      border:5px solid #fffdf5;box-shadow:inset 0 0 0 1px rgba(0,0,0,.05);
+    .frame img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .25s ease}
+    .frame:hover img{transform:scale(1.04)}
+    .frame:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+    .frame .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+    .frame .play::before{
+      content:"\25B6";display:flex;align-items:center;justify-content:center;padding-left:4px;
+      width:58px;height:58px;border-radius:50%;background:rgba(20,14,8,.65);color:#fffdf5;font-size:22px;
+      box-shadow:0 0 0 3px rgba(255,253,245,.8);
     }
-    .note .ph{
-      display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.45);
-      border:2px dashed rgba(60,40,10,.35);font-size:18px;color:var(--ink-soft);
+    .shot figcaption{margin-top:6px;font-family:"Caveat", cursive;font-size:22px;line-height:1.2;color:var(--ink-soft);overflow-wrap:anywhere}
+
+    /* ---------- enlarged view ---------- */
+    .lb{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        gap:12px;padding:56px 12px 20px;background:rgba(20,14,8,.93)}
+    .lb[hidden]{display:none}
+    .lb-stage{display:flex;align-items:center;justify-content:center;width:100%;min-height:0}
+    .lb-stage img{display:block;max-width:94vw;max-height:80vh;width:auto;height:auto;border-radius:3px}
+    .lb-stage iframe{display:block;border:0;width:min(94vw, 1100px);aspect-ratio:16/9;max-height:80vh;border-radius:3px;background:#000}
+    .lb-cap{max-width:90vw;text-align:center;color:#f3e8cf;font-family:"Caveat", cursive;font-size:24px;min-height:1em}
+    .lb button{
+      position:absolute;border:0;background:rgba(255,253,245,.14);color:#fffdf5;cursor:pointer;
+      width:46px;height:46px;border-radius:50%;font-size:28px;line-height:1;
     }
-    .note-link{position:relative;display:block}
-    .note-link .play-hint{
-      position:absolute;right:6px;bottom:18px;
-      font-family:"Kalam","Comic Sans MS",cursive;font-size:13px;font-weight:700;
-      color:#fffdf5;background:rgba(59,47,34,.72);padding:2px 8px;border-radius:999px;
-      pointer-events:none;
-    }
+    .lb button:hover{background:rgba(255,253,245,.3)}
+    .lb-x{top:10px;right:10px}
+    .lb-prev{left:10px;top:50%;transform:translateY(-50%)}
+    .lb-next{right:10px;top:50%;transform:translateY(-50%)}
 
     /* ---------- links ---------- */
     .links{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:16px;font-size:19px;max-width:100%}
@@ -154,12 +159,13 @@
     footer{margin-top:60px;text-align:center;font-family:"Caveat", cursive;font-size:20px;color:var(--ink-soft)}
 
     @media (max-width:640px){
-      body{padding:24px 10px 60px}
-      .page{padding:58px 48px 62px}
+      body{padding:14px 8px 40px}
+      .page{padding:44px 30px 48px}
       .avatar{width:150px;margin:6px auto 0 0}
       header{gap:24px}
-      .note{width:min(100%, 300px);margin:0 auto;font-size:28px;padding:14px 14px 20px}
-      .notes{justify-content:center}
+      .blurb{font-size:17px}
+      .gallery{grid-template-columns:repeat(auto-fill, minmax(min(100%, 150px), 1fr));gap:12px}
+      .lb-prev,.lb-next{top:auto;bottom:14px;transform:none}
     }
     @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
   </style>
@@ -220,55 +226,118 @@
         .trim();
     }
 
-    function renderNote(b){
-      const note = el("figure", "note");
+    // every picture/video on the page, in order, so the enlarged view can step through them
+    const media = [];
+
+    function driveThumb(id){ return "https://drive.google.com/thumbnail?id=" + encodeURIComponent(id) + "&sz=w800"; }
+
+    function renderShot(b){
       const caption = cleanCaption(b.caption);
-      const src = b.src && safeUrl(b.src);
-      // b.link is the original Drive/share URL a picture or video came from (when it
-      // came from a pasted link rather than an image embedded directly in the doc).
-      // Wrapping the thumbnail in it means a video post-it actually opens and plays,
-      // not just sits there as a dead picture of itself.
-      const link = b.link && safeUrl(b.link);
-      const mediaHost = link ? el("a", "note-link") : null;
-      if (mediaHost){ mediaHost.href = link; mediaHost.target = "_blank"; mediaHost.rel = "noopener noreferrer"; }
-      if (src){
-        const img = el("img");
-        img.src = src; img.alt = caption || ""; img.loading = "lazy";
-        (mediaHost || note).appendChild(img);
-        if (mediaHost) mediaHost.appendChild(el("span", "play-hint", "▶ view"));
+      const fig = el("figure", "shot");
+      const frame = el("button", "frame");
+      frame.type = "button";
+      frame.setAttribute("aria-label", (b.video ? "play video" : "enlarge picture") + (caption ? ": " + caption : ""));
+      const item = { caption, video: !!b.video, src: b.src && safeUrl(b.src), drive: b.drive };
+      if (item.video){
+        // Drive videos play in Drive's own embedded player (never a link out); the poster is
+        // Drive's thumbnail if the viewer's browser can load it, else a plain dark rectangle.
+        if (item.drive){
+          const img = el("img"); img.src = driveThumb(item.drive); img.alt = ""; img.loading = "lazy";
+          img.onerror = () => img.remove();
+          frame.appendChild(img);
+        }
+        frame.appendChild(el("span", "play"));
+      } else if (item.src){
+        const img = el("img"); img.src = item.src; img.alt = caption; img.loading = "lazy"; img.decoding = "async";
+        frame.appendChild(img);
       } else {
-        (mediaHost || note).appendChild(el("div", "ph", link ? "tap to view" : "photo goes here"));
+        return null;
       }
-      if (mediaHost) note.appendChild(mediaHost);
-      if (caption) note.appendChild(el("figcaption", null, caption));
-      return note;
+      const idx = media.push(item) - 1;
+      frame.addEventListener("click", () => openViewer(idx));
+      fig.appendChild(frame);
+      if (caption) fig.appendChild(el("figcaption", null, caption));
+      return fig;
     }
 
+    // text and media stay in the order they're written in the doc; runs of consecutive
+    // pictures/videos sit together in one tidy grid.
     function renderSection(s){
       const sec = el("section", s.level === 2 ? "sub" : null);
       sec.appendChild(el("h2", null, s.title));
-      const isLinks = /^(find me|links|contact|elsewhere)$/i.test(s.title.trim());
-      let notes = null;
+      let gallery = null;
       for (const b of s.blocks){
         if (b.type === "note"){
-          if (!notes){ notes = el("div", "notes"); sec.appendChild(notes); }
-          notes.appendChild(renderNote(b));
+          const shot = renderShot(b);
+          if (!shot) continue;
+          if (!gallery){ gallery = el("div", "gallery"); sec.appendChild(gallery); }
+          gallery.appendChild(shot);
         } else {
-          notes = null;
+          gallery = null;
+          const p = el("p", "blurb");
+          renderRuns(p, b.runs);
+          sec.appendChild(p);
         }
       }
-      // paragraphs first (blurb / links), then post-its in document order
-      const textHost = isLinks ? el("div", "links") : null;
-      const frag = document.createDocumentFragment();
-      for (const b of s.blocks){
-        if (b.type !== "p") continue;
-        const p = el("p", isLinks ? null : "blurb");
-        renderRuns(p, b.runs);
-        (textHost || frag).appendChild(p);
-      }
-      sec.insertBefore(textHost || frag, sec.children[1] || null);
       return sec;
     }
+
+    // ---------- enlarged view ----------
+    const lb = el("div", "lb");
+    lb.hidden = true;
+    lb.setAttribute("role", "dialog");
+    lb.setAttribute("aria-modal", "true");
+    const lbStage = el("div", "lb-stage");
+    const lbCap = el("div", "lb-cap");
+    const lbX = el("button", "lb-x", "\u00D7"); lbX.type = "button"; lbX.setAttribute("aria-label", "close");
+    const lbPrev = el("button", "lb-prev", "\u2039"); lbPrev.type = "button"; lbPrev.setAttribute("aria-label", "previous");
+    const lbNext = el("button", "lb-next", "\u203A"); lbNext.type = "button"; lbNext.setAttribute("aria-label", "next");
+    lb.append(lbX, lbPrev, lbStage, lbCap, lbNext);
+    document.body.appendChild(lb);
+    let lbIndex = -1, lastFocus = null;
+
+    function showViewer(i){
+      lbIndex = (i + media.length) % media.length;
+      const m = media[lbIndex];
+      lbStage.textContent = "";                       // also stops a playing video
+      if (m.video){
+        const f = el("iframe");
+        f.src = "https://drive.google.com/file/d/" + encodeURIComponent(m.drive) + "/preview";
+        f.allow = "autoplay; fullscreen";
+        f.allowFullscreen = true;
+        f.title = m.caption || "video";
+        lbStage.appendChild(f);
+      } else {
+        const img = el("img"); img.src = m.src; img.alt = m.caption || "";
+        lbStage.appendChild(img);
+      }
+      lbCap.textContent = m.caption || "";
+      const many = media.length > 1;
+      lbPrev.hidden = lbNext.hidden = !many;
+    }
+    function openViewer(i){
+      lastFocus = document.activeElement;
+      lb.hidden = false;
+      document.body.style.overflow = "hidden";
+      showViewer(i);
+      lbX.focus();
+    }
+    function closeViewer(){
+      lb.hidden = true;
+      lbStage.textContent = "";
+      document.body.style.overflow = "";
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    lbX.addEventListener("click", closeViewer);
+    lbPrev.addEventListener("click", () => showViewer(lbIndex - 1));
+    lbNext.addEventListener("click", () => showViewer(lbIndex + 1));
+    lb.addEventListener("click", e => { if (e.target === lb || e.target === lbStage) closeViewer(); });
+    document.addEventListener("keydown", e => {
+      if (lb.hidden) return;
+      if (e.key === "Escape") closeViewer();
+      else if (e.key === "ArrowLeft" && media.length > 1) showViewer(lbIndex - 1);
+      else if (e.key === "ArrowRight" && media.length > 1) showViewer(lbIndex + 1);
+    });
 
     // this page is the blog, synced from the doc's second tab into blog.json by
     // the same workflow that builds content.json. See index.html for the home page.
@@ -277,6 +346,7 @@
 
     function render(data){
       page.textContent = "";
+      media.length = 0;
       const header = el("header");
       const titleBox = el("div", "title-box");
       titleBox.appendChild(el("h1", null, data.title || "Blog"));
@@ -340,7 +410,7 @@
     function sewStitches(){
       const svg = document.getElementById("stitches");
       const host = svg.parentElement;
-      const W = host.clientWidth, H = host.clientHeight, inset = 26, step = 25;
+      const W = host.clientWidth, H = host.clientHeight, inset = W < 640 ? 15 : 26, step = W < 640 ? 22 : 25;
       let seed = 5;
       const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
         t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
