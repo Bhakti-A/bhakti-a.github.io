@@ -133,26 +133,17 @@
           "type": "p",
           "runs": [
             {
-              "text": "mail",
-              "href": "mailto:bhakti.assar24@gmail.com"
-            }
-          ]
-        },
-        {
-          "type": "p",
-          "runs": [
-            {
-              "text": "site",
-              "href": "https://bhakti-a.github.io/"
-            }
-          ]
-        },
-        {
-          "type": "p",
-          "runs": [
-            {
               "text": "twitter",
               "href": "https://x.com/Bhakti8997925"
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "runs": [
+            {
+              "text": "mail",
+              "href": "mailto:bhakti.assar24@gmail.com"
             }
           ]
         },
