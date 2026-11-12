@@ -107,18 +107,20 @@
     ol.blist > li::marker{color:var(--accent);font-weight:700}
     .blist strong{color:var(--accent)}
 
-    /* ---------- timeline of sub-headings, built from the doc's headings ---------- */
+    /* ---------- timeline of sub-headings: sits outside the paper page (blog only) ---------- */
     .layout{margin-top:8px}
-    .layout.has-timeline{display:grid;grid-template-columns:190px minmax(0, 1fr);gap:0 40px;align-items:start}
     .main{min-width:0}
     .main section{scroll-margin-top:22px}
-    .timeline{position:sticky;top:22px;align-self:start;margin-top:52px}
+    .shell{max-width:1180px;margin:0 auto}
+    .shell.has-timeline{display:grid;grid-template-columns:200px minmax(0, 1fr);gap:0 26px;max-width:1360px;align-items:start}
+    .shell.has-timeline .page-shadow{margin:0;max-width:none;width:100%}
+    .timeline{position:sticky;top:28px;align-self:start;margin-top:74px}
     .timeline ol{list-style:none;margin:0;padding:0;position:relative}
-    .timeline ol::before{content:"";position:absolute;left:7px;top:12px;bottom:18px;width:2px;background:rgba(109,91,69,.35)}
+    .timeline ol::before{content:"";position:absolute;left:7px;top:12px;bottom:18px;width:2px;background:rgba(109,91,69,.4)}
     .timeline li{position:relative;padding:0 0 14px 28px}
     .timeline li::before{
       content:"";position:absolute;left:0;top:6px;width:16px;height:16px;border-radius:50%;
-      background:var(--paper);border:3px solid var(--ink-soft);transition:background .2s, border-color .2s, transform .2s;
+      background:var(--parchment);border:3px solid var(--ink-soft);transition:background .2s, border-color .2s, transform .2s;
     }
     .timeline li.active::before{background:var(--accent);border-color:var(--accent);transform:scale(1.15)}
     .timeline a{
@@ -127,6 +129,18 @@
     }
     .timeline a:hover{color:var(--ink)}
     .timeline li.active a{color:var(--accent);font-weight:700}
+    /* not enough room beside the page: the timeline becomes a strip stuck to the top of the screen */
+    @media (max-width:1000px){
+      .shell.has-timeline{display:block}
+      .timeline{position:sticky;top:0;z-index:6;margin:-28px -16px 16px;padding:10px 16px 6px;background:var(--parchment);border-bottom:1px dashed rgba(109,91,69,.45)}
+      .timeline ol{display:flex;gap:4px 18px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+      .timeline ol::-webkit-scrollbar{display:none}
+      .timeline ol::before{display:none}
+      .timeline li{flex:none;padding:0 0 4px 22px}
+      .timeline li::before{top:5px;width:13px;height:13px;border-width:2.5px}
+      .timeline a{display:block;-webkit-line-clamp:unset;white-space:nowrap}
+      .main section{scroll-margin-top:64px}
+    }
 
     /* ---------- pictures & videos: plain rectangles, click to enlarge ---------- */
     .gallery{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;margin:22px 0 10px}
@@ -193,15 +207,7 @@
 
     @media (max-width:640px){
       body{padding:14px 8px 40px}
-      .layout.has-timeline{display:block}
-      .timeline{position:sticky;top:0;z-index:6;margin:14px -6px 0;padding:8px 6px 4px;background:var(--paper);border-bottom:1px dashed rgba(109,91,69,.4)}
-      .timeline ol{display:flex;gap:4px 18px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
-      .timeline ol::-webkit-scrollbar{display:none}
-      .timeline ol::before{display:none}
-      .timeline li{flex:none;padding:0 0 4px 22px}
-      .timeline li::before{top:5px;width:13px;height:13px;border-width:2.5px}
-      .timeline a{display:block;-webkit-line-clamp:unset;white-space:nowrap}
-      .main section{scroll-margin-top:64px}
+      .timeline{margin:-14px -8px 12px}
       .page{padding:44px 30px 48px}
       .avatar{width:150px;margin:6px auto 0 0}
       header{gap:24px}
@@ -215,11 +221,13 @@
   </style>
 </head>
 <body>
+  <div class="shell" id="shell">
   <div class="page-shadow">
     <main class="page" id="page">
       <svg class="stitches" id="stitches" aria-hidden="true"></svg>
       <div id="content"><p class="status" id="status">unrolling the parchment…</p></div>
     </main>
+  </div>
   </div>
   <footer id="footer"></footer>
 
@@ -388,7 +396,7 @@
       const onScroll = () => { if (!ticking){ ticking = true; requestAnimationFrame(update); } };
       addEventListener("scroll", onScroll, { passive: true });
       addEventListener("resize", onScroll);
-      update();
+      nav.refresh = onScroll;          // called once the page is in the DOM (and again as pictures load)
       return nav;
     }
 
@@ -459,6 +467,8 @@
     // the same workflow that builds content.json. See index.html for the home page.
     const NAV_LABEL = "🏠 home";
     const NAV_URL = "index.html";
+    // the side timeline of sub-headings is only for the blog page (see blog.html)
+    const SHOW_TIMELINE = true;
 
     function render(data){
       page.textContent = "";
@@ -523,9 +533,15 @@
       sections.forEach((s, i) => { const e = renderSection(s); e.id = "sec-" + (i + 1); secEls.set(s, e); main.appendChild(e); });
       const subs = sections.filter(s => s.level === 2);
       const entries = subs.length ? subs : sections;
-      if (entries.length >= 2){
-        layout.classList.add("has-timeline");
-        layout.appendChild(buildTimeline(entries, secEls));
+      const shell = document.getElementById("shell");
+      shell.classList.remove("has-timeline");
+      const oldNav = shell.querySelector(".timeline"); if (oldNav) oldNav.remove();
+      if (SHOW_TIMELINE && entries.length >= 2){
+        shell.classList.add("has-timeline");
+        const nav = buildTimeline(entries, secEls);
+        shell.insertBefore(nav, shell.firstChild);
+        requestAnimationFrame(() => nav.refresh());
+        setTimeout(() => nav.refresh(), 700);
       }
       layout.appendChild(main);
       page.appendChild(layout);
